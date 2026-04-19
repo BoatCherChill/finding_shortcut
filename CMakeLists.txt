@@ -13,21 +13,27 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(Qt5_DIR "C:/Qt/Qt5.14.2/5.14.2/msvc2017_64/lib/cmake/Qt5")
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
-# ВАШИ ФАЙЛЫ В ПАПКЕ lr_mp/
+# Файлы в папке src/ (ВНИМАНИЕ: пути без lr_mp/)
 set(PROJECT_SOURCES
-    lr_mp/main.cpp  
-    lr_mp/arrow.h 
-   lr_mp/arrow.cpp
-   lr_mp/lr_mp.qrc
-   lr_mp/diagramscene.h 
-   lr_mp/diagramscene.cpp
-   lr_mp/mainwindow.cpp
-    lr_mp/mainwindow.h 
-    lr_mp/graph.cpp
-    lr_mp/graph.h
+    src/main.cpp  
+    src/arrow.h 
+    src/arrow.cpp
+    src/diagramscene.h 
+    src/diagramscene.cpp
+    src/mainwindow.cpp
+    src/mainwindow.h 
+    src/mainwindow.ui
+    src/graph.cpp
+    src/graph.h
+    
 )
 
-add_executable(lr_mp ${PROJECT_SOURCES})
+# Файл ресурсов (если есть)
+# set(RESOURCES
+#     src/lr_mp.qrc
+# )
+
+add_executable(lr_mp ${PROJECT_SOURCES}) # ${RESOURCES}
 
 target_link_libraries(lr_mp PRIVATE 
     Qt5::Widgets
