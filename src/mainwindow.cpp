@@ -94,7 +94,8 @@ void MainWindow::createToolBar() {
     execBtn->setObjectName("executeButton");
     execBtn->setEnabled(false);
     bar->addWidget(execBtn);
-    //QObject::connect(execBtn, &QPushButton::clicked, this, &MainWindow::executeGraph);
+    QObject::connect(execBtn, &QPushButton::clicked, this, &MainWindow::executeGraph);
+    execBtn->setEnabled(true);
 
     bar->addSeparator();
 }
@@ -137,8 +138,6 @@ void MainWindow::deleteItem() {
 void MainWindow::loadGraph() {
     QString fileName = QFileDialog::getOpenFileName(this, "Открыть файл", "", "Text files (*.txt)");
     if (fileName.isEmpty()) return;
-
-    Graph graph;
     graph.loadMatrix(fileName.toStdString());
 
     auto nodesData = graph.getNodesData();
@@ -152,8 +151,90 @@ void MainWindow::loadGraph() {
 
 }
 
-/*
-void executeGraph{
+void MainWindow::executeGraph(){
 
+    int lastnode = 10;
+    int firstnode = 1;
+    vector<GraphArrow> arrows;
+    arrows = graph.getArrowsData();
+
+    vector<vector<float>> weights = createDistanceMatrix(arrows);
+
+    vector<SolutionPart> solution;
+    int countLoop = 0;
+    while (true) {
+        if (solution.size() != 0) {
+            vector<int> nodes = solution[solution.size() - 1].node;
+            if (std::find(nodes.begin(), nodes.end(), firstnode) != nodes.end()) {
+                break;
+            }
+        }
+        SolutionPart step;
+        if (countLoop == 0)
+        {
+            vector<float> node;
+            node.push_back(lastnode);
+            step.dist.push_back(node);
+            for (int i = 0; i < weights.size(); i++) {
+                if (weights[i][lastnode - 1] != 0) {
+                    step.node.push_back(i + 1);
+                    vector<float> d;
+                    d.push_back(weights[i][lastnode - 1]);
+                    step.dist.push_back(d);
+                    step.min_size.push_back(weights[i][lastnode - 1]);
+                    step.best_var.push_back(lastnode);
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < solution[solution.size() - 1].node.size(); i++) {
+                for (int j = 0; j < weights.size(); j++) {
+
+                }
+            }
+        }
+    }
+
+    
+    /*vector<vector<int>> belts;
+
+    belts = getBelt(arrows);*/
 }
-*/
+
+vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>& arrows) {
+    if (arrows.empty()) {
+        return {};
+    }
+
+    int maxNode = 0;
+    for (const auto& arrow : arrows) {
+        maxNode = max(maxNode, max(arrow.node_1, arrow.node_2));
+    }
+
+    vector<vector<float>> matrix(maxNode + 1, vector<float>(maxNode + 1, 0.0f));
+
+    for (const auto& arrow : arrows) {
+        /*if (arrow.isLoop) {
+            continue;
+        }*/
+
+        float weightValue = 0.0f;
+        try {
+            weightValue = stof(arrow.weight);
+        }
+        catch (const exception& e) {
+            continue;
+        }
+
+        matrix[arrow.node_1][arrow.node_2] = weightValue;
+    }
+
+    return matrix;
+}
+
+//vector<vector<int>> MainWindow::getBelt(vector<GraphArrow> arrows) {
+//    int count = 1;
+//    int countNextLoop = 0;
+//
+//    for (int count = 0; )
+//}

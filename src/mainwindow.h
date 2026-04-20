@@ -3,7 +3,15 @@
 #include <QMainWindow>
 #include <QGraphicsView>
 #include "diagramscene.h"
+#include <algorithm> 
 #include "graph.h"
+
+struct SolutionPart {
+    vector<int> node;
+    vector<vector<float>> dist;
+    vector<float> min_size;
+    vector<int> best_var;
+};
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -23,7 +31,10 @@ private:
     void setupUI();
     void createToolBar(); 
     void updateNodesMovable(bool movable);
+    void executeGraph();
+    vector<vector<float>> createDistanceMatrix(const vector<GraphArrow>& arrows);
 
+    Graph graph;
     DiagramScene* scene;
     QGraphicsView* view;
     QToolButton* node_button;
