@@ -92,8 +92,9 @@ void MainWindow::createToolBar() {
 
     QPushButton* execBtn = new QPushButton("Выполнить");
     execBtn->setObjectName("executeButton");
-    execBtn->setEnabled(false);
+   // execBtn->setEnabled(false);
     bar->addWidget(execBtn);
+    QObject::connect(execBtn, &QPushButton::clicked, this, &MainWindow::executeGraph);
     //QObject::connect(execBtn, &QPushButton::clicked, this, &MainWindow::executeGraph);
 
     bar->addSeparator();
@@ -152,8 +153,36 @@ void MainWindow::loadGraph() {
 
 }
 
-/*
-void executeGraph{
+void MainWindow::executeGraph() {
 
+    Graph graph;
+
+    QDialog dialog(this);
+    dialog.setWindowTitle("Поиск кратчайшего пути");
+    dialog.setFixedSize(300, 150);
+
+    QFormLayout* layout = new QFormLayout(&dialog);
+
+    QLineEdit* start = new QLineEdit();
+    QLineEdit* end = new QLineEdit();
+
+    layout->addRow("Начальный узел:", start);
+    layout->addRow("Конечный узел:", end);
+
+    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
+
+    layout->addRow(buttons);
+
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        graph.startNode = start->text().toInt();
+        graph.endNode = end->text().toInt();
+        
+    }
+    
+    QString way = "1 2 3";
+
+    scene->drawWay(way);
 }
-*/
+

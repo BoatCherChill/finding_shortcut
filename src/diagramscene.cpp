@@ -4,6 +4,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsLineItem>
+#include <QString>
 #include <QGraphicsTextItem>
 #include <QPen>
 #include <QBrush>
@@ -70,9 +71,9 @@ void DiagramScene::createArrow(QGraphicsEllipseItem* startNode, QGraphicsEllipse
     Arrow* arrow = new Arrow(startNode, endNode);
 
     bool ok;
-    int weight = QInputDialog::getInt(nullptr, "Вес связи",
-        "Введите вес (положительное число):", 1, 1, 1000, 1, &ok);
+    int weight = QInputDialog::getInt(nullptr, "Вес связи", "Введите вес (положительное число):", 1, 1, 1000, 1, &ok);
     if (ok) {
+
         arrow->setWeight(weight);
     }
 
@@ -263,7 +264,7 @@ void DiagramScene::loadGraph(const vector<pair<int, pair<int, int>>>& nodesData,
         node->setFlag(QGraphicsItem::ItemIsSelectable, true);
         node->setData(0, nodeId);
 
-        QGraphicsTextItem* text = new QGraphicsTextItem(QString::number(nodeId), node);
+        QGraphicsTextItem* text = new QGraphicsTextItem(QString::number(nodeId+1), node);
         text->setDefaultTextColor(Qt::black);
         text->setFont(QFont("Arial", 12, QFont::Bold));
         text->setPos(-10, -10);
@@ -303,6 +304,41 @@ void DiagramScene::loadGraph(const vector<pair<int, pair<int, int>>>& nodesData,
             addItem(arrow);
         }
     }
-
     updateAllArrows();
+}
+
+void DiagramScene::drawWay(QString way)
+{
+    clearColors();
+
+    QStringList parts = way.split(" ", Qt::SkipEmptyParts);
+    QVector<int> nodes_in_way;
+
+    for (QString& part : parts) {
+        nodes_in_way.append(part.toInt());
+    }
+
+    QVector<QPair<int, int>> arrows_in_way;
+    for (int i = 0; i < nodes_in_way.size() - 1; i++) {
+        arrows_in_way.append({ nodes_in_way[i], nodes_in_way[i + 1] });
+    }
+    for (Arrow* arrow : arrows) {
+        int startId = arrow->startItem()->data(0).toInt();
+        int endId = arrow->endItem()->data(0).toInt();
+
+        for (const auto& pathArrow : arrows_in_way) {
+            if (startId == pathArrow.first && endId == pathArrow.second) {
+                arrow->setGreat(true); 
+                break;
+            }
+        }
+    }
+    update();
+}
+
+void DiagramScene::clearColors() {
+    for (Arrow* arrow : arrows) {
+        arrow->setGreat(false);
+    }
+    update();
 }

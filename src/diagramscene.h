@@ -10,6 +10,7 @@
 #include <QGraphicsScene>
 #include <QMenu>
 #include <QVector>
+#include <QString>
 #include <vector>
 #include "arrow.h"
 #include "graph.h"
@@ -31,6 +32,8 @@ public:
     void deleteSelectedItem();
     void clearAll();
 
+    void drawWay(QString way);
+
     void loadGraph(const vector<pair<int, pair<int, int>>>& nodesData, const vector<GraphArrow>& arrowsData);
 signals:
     void itemInserted();
@@ -47,6 +50,8 @@ private:
     void createArrow(QGraphicsEllipseItem* startNode, QGraphicsEllipseItem* endNode);
     void updateAllArrows();
     void editArrowWeight(Arrow* arrow);
+    void clearColors();
+    
 
     Mode my_mode;
     QMenu* my_menu;
