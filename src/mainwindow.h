@@ -10,7 +10,7 @@ struct SolutionPart {
     vector<int> node;
     vector<vector<float>> dist;
     vector<float> min_size;
-    vector<int> best_var;
+    vector<vector<int>> best_var;
 };
 
 class MainWindow : public QMainWindow {
@@ -33,6 +33,8 @@ private:
     void updateNodesMovable(bool movable);
     void executeGraph();
     vector<vector<float>> createDistanceMatrix(const vector<GraphArrow>& arrows);
+
+    void printSolution(vector<SolutionPart> s);
 
     Graph graph;
     DiagramScene* scene;
