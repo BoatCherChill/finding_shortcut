@@ -157,7 +157,7 @@ void MainWindow::executeGraph(){
     int firstnode = 1;
     vector<GraphArrow> arrows;
     arrows = graph.getArrowsData();
-    pair<string, float> ways;
+    map<string, float> ways;
 
     vector<vector<float>> weights = createDistanceMatrix(arrows);
 
@@ -168,15 +168,13 @@ void MainWindow::executeGraph(){
             vector<int> nodes = solution[solution.size() - 1].node;
             bool flagOfExit = false;
             if (std::find(nodes.begin(), nodes.end(), firstnode) != nodes.end()) {
-                /*if (nodes.size() == 1) flagOfExit = true;
-                string route = "";
-                vector<string> r;
-                for (int i = solution.size() - 1; i >= 0; i++) {
-                    int position = std::distance(solution[i].node.begin(),
-                        std::find(solution[i].node.begin(), solution[i].node.end(), firstnode)) + 1;
-                }*/
-                break;
+                int position = std::distance(nodes.begin(),
+                    std::find(nodes.begin(), nodes.end(), firstnode));
+                vector<int> path;
+                float a = solution[solution.size() - 1].min_size[position];
+                findSolution(solution, solution.size() - 1, path, ways, firstnode, solution[solution.size()-1].min_size[position]);
             }
+            if (nodes.size() == 0) break;
         }
         SolutionPart step;
         if (countLoop == 0)
@@ -294,6 +292,48 @@ vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>&
 //    for (int count = 0; )
 //}
 
+void MainWindow::findSolution(vector<SolutionPart>& solution, int step, vector<int>& currentPath, map<string, float>& result, int currentValue, float minDist) {
+
+    currentPath.push_back(currentValue);
+
+    if (step == 0) {
+
+        auto it = std::find(solution[step].node.begin(), solution[step].node.end(), currentValue);
+        if (it != solution[step].node.end()) {
+            int position = std::distance(solution[step].node.begin(), it);
+
+            if (!solution[step].best_var[position].empty()) {
+                int previousValue = solution[step].best_var[position][0];
+                
+                string pathStr = "";
+                for (int i = 0; i < currentPath.size(); i++) {
+                    if (i == 0) pathStr += to_string(currentPath[i]);
+                    else pathStr += "-" + to_string(currentPath[i]);
+                }
+                pathStr += "-" + to_string(previousValue);
+                result[pathStr] = minDist;
+            }
+        }
+        currentPath.pop_back();
+        return;
+    }
+
+    auto it = std::find(solution[step].node.begin(), solution[step].node.end(), currentValue);
+    if (it == solution[step].node.end()) {
+        currentPath.pop_back();
+        return;
+    }
+
+    int position = distance(solution[step].node.begin(), it);
+
+    vector<int> nextValues = solution[step].best_var[position];
+
+    for (int nextValue : nextValues) {
+        findSolution(solution, step - 1, currentPath, result, nextValue, minDist);
+    }
+    currentPath.pop_back();
+}
+
 void MainWindow::printSolution(vector<SolutionPart> s) {
     for (SolutionPart i : s) {
         int sizenode =  i.node.size();
@@ -319,3 +359,4 @@ void MainWindow::printSolution(vector<SolutionPart> s) {
         cout << endl;
     }
 }
+

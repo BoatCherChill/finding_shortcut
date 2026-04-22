@@ -2,6 +2,7 @@
 
 #include <QMainWindow>
 #include <QGraphicsView>
+#include <string>
 #include "diagramscene.h"
 #include <algorithm> 
 #include "graph.h"
@@ -33,6 +34,7 @@ private:
     void updateNodesMovable(bool movable);
     void executeGraph();
     vector<vector<float>> createDistanceMatrix(const vector<GraphArrow>& arrows);
+    void findSolution(vector<SolutionPart>& solution, int step, vector<int>& currentPath, map<string, float>& result, int currentValue, float minDist);
 
     void printSolution(vector<SolutionPart> s);
 
