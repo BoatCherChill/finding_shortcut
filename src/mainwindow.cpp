@@ -157,7 +157,7 @@ void MainWindow::executeGraph(){
     int firstnode = 1;
     vector<GraphArrow> arrows;
     arrows = graph.getArrowsData();
-    map<string, float> ways;
+    ways.clear();
 
     vector<vector<float>> weights = createDistanceMatrix(arrows);
 
@@ -173,6 +173,7 @@ void MainWindow::executeGraph(){
                 vector<int> path;
                 float a = solution[solution.size() - 1].min_size[position];
                 findSolution(solution, solution.size() - 1, path, ways, firstnode, solution[solution.size()-1].min_size[position]);
+                
             }
             if (nodes.size() == 0) break;
         }
@@ -247,8 +248,6 @@ void MainWindow::executeGraph(){
         printSolution(solution);
         cout << "--------------" << endl;
     }
-
-    
     /*vector<vector<int>> belts;
 
     belts = getBelt(arrows);*/
@@ -292,7 +291,7 @@ vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>&
 //    for (int count = 0; )
 //}
 
-void MainWindow::findSolution(vector<SolutionPart>& solution, int step, vector<int>& currentPath, map<string, float>& result, int currentValue, float minDist) {
+void MainWindow::findSolution(vector<SolutionPart>& solution, int step, vector<int>& currentPath, map<float, vector<string>>& result, int currentValue, float minDist) {
 
     currentPath.push_back(currentValue);
 
@@ -311,7 +310,7 @@ void MainWindow::findSolution(vector<SolutionPart>& solution, int step, vector<i
                     else pathStr += "-" + to_string(currentPath[i]);
                 }
                 pathStr += "-" + to_string(previousValue);
-                result[pathStr] = minDist;
+                result[minDist].push_back(pathStr);
             }
         }
         currentPath.pop_back();
@@ -334,38 +333,38 @@ void MainWindow::findSolution(vector<SolutionPart>& solution, int step, vector<i
     currentPath.pop_back();
 }
 
-void MainWindow::executeGraph() {
-
-    Graph graph;
-
-    QDialog dialog(this);
-    dialog.setWindowTitle("Поиск кратчайшего пути");
-    dialog.setFixedSize(300, 150);
-
-    QFormLayout* layout = new QFormLayout(&dialog);
-
-    QLineEdit* start = new QLineEdit();
-    QLineEdit* end = new QLineEdit();
-
-    layout->addRow("Начальный узел:", start);
-    layout->addRow("Конечный узел:", end);
-
-    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
-
-    layout->addRow(buttons);
-
-    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-
-    if (dialog.exec() == QDialog::Accepted) {
-        graph.startNode = start->text().toInt();
-        graph.endNode = end->text().toInt();
-
-    }
-
-    QString way = "1 2 3";
-
-    scene->drawWay(way);
-}
+//void MainWindow::executeGraph() {
+//
+//    Graph graph;
+//
+//    QDialog dialog(this);
+//    dialog.setWindowTitle("Поиск кратчайшего пути");
+//    dialog.setFixedSize(300, 150);
+//
+//    QFormLayout* layout = new QFormLayout(&dialog);
+//
+//    QLineEdit* start = new QLineEdit();
+//    QLineEdit* end = new QLineEdit();
+//
+//    layout->addRow("Начальный узел:", start);
+//    layout->addRow("Конечный узел:", end);
+//
+//    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
+//
+//    layout->addRow(buttons);
+//
+//    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+//
+//    if (dialog.exec() == QDialog::Accepted) {
+//        graph.startNode = start->text().toInt();
+//        graph.endNode = end->text().toInt();
+//
+//    }
+//
+//    QString way = "1 2 3";
+//
+//    scene->drawWay(way);
+//}
 
 void MainWindow::printSolution(vector<SolutionPart> s) {
     for (SolutionPart i : s) {

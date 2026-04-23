@@ -34,9 +34,11 @@ private:
     void updateNodesMovable(bool movable);
     void executeGraph();
     vector<vector<float>> createDistanceMatrix(const vector<GraphArrow>& arrows);
-    void findSolution(vector<SolutionPart>& solution, int step, vector<int>& currentPath, map<string, float>& result, int currentValue, float minDist);
+    void findSolution(vector<SolutionPart>& solution, int step, vector<int>& currentPath, map<float, vector<string>>& result, int currentValue, float minDist);
 
     void printSolution(vector<SolutionPart> s);
+
+    map<float, vector<string>> ways;
 
     Graph graph;
     DiagramScene* scene;
