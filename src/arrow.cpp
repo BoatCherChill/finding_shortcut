@@ -23,8 +23,11 @@ void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) 
     QPen myPen = pen();
     if (isLoop)
         myPen.setColor(Qt::red);
+    else if (isGreat)
+        myPen.setColor(Qt::green);
     else
         myPen.setColor(Qt::black);
+
     painter->setPen(myPen);
 
     // вычислить координаты начального и конечного узлов

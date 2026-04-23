@@ -20,6 +20,9 @@ public:
     void setLoop(bool loop) { isLoop = loop; update(); }
     bool getLoop() const { return isLoop; }
 
+    void setGreat(bool great) { isGreat = great; update(); }
+    bool getGreat() const { return isGreat; }
+
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override; // функция рисования стрелки (инструмент для рисования, параметры объекта рисования, параметры для виджета)
     QRectF boundingRect() const override; // функция, задающая ограничения для стрелки
@@ -30,7 +33,10 @@ private:
     QPolygonF arrow_head; // полигон для наконечника
 
     int weight;
-    bool isLoop = false;
+    bool isLoop = false; // стрелка дает цикл 
+    bool isGreat = false; // стрелка - часть лучшего пути
     
     QString fullWeight;
+
+    
 };

@@ -52,6 +52,9 @@ public:
     vector<pair<int, pair<int, int>>> getNodesData() const;
     vector<GraphArrow> getArrowsData() const;
 
+    int startNode;
+    int endNode;
+
     //Node* findNodeById(int id); // функция поиска узла по ID
     //void addNode(int x, int y, NodeType type); // функция добавления узла
     //void deleteNode(int id); // функция удаления узла
