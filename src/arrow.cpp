@@ -21,7 +21,7 @@ QRectF Arrow::boundingRect() const {
 void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
     // настроить перо
     QPen myPen = pen();
-    if (isLoop)
+    if (isLoop || isCycle)
         myPen.setColor(Qt::red);
     else if (isGreat)
         myPen.setColor(Qt::green);

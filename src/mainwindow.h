@@ -27,6 +27,11 @@ private slots:
     void setEditMode();
     void deleteItem();
     void loadGraph();
+    void startExecute();
+    void syncGraphFromScene();
+
+    void onCheckCycle(int from, int to, Arrow* arrow);
+    void updateExecuteButton();
 
 private:
     void setupUI();
@@ -38,6 +43,8 @@ private:
 
     void printSolution(vector<SolutionPart> s);
 
+    bool graphHasCycle = false;
+
     map<float, vector<string>> ways;
 
     Graph graph;
@@ -46,4 +53,8 @@ private:
     QToolButton* node_button;
     QToolButton* arrow_button;
     QToolButton* edit_button;
+
+
+    int startNode;
+    int endNode;
 };

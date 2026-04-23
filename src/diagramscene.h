@@ -32,12 +32,18 @@ public:
     void deleteSelectedItem();
     void clearAll();
 
-    void drawWay(QString way);
+    void drawWays(const QStringList& ways);
 
     void loadGraph(const vector<pair<int, pair<int, int>>>& nodesData, const vector<GraphArrow>& arrowsData);
+
+    QVector<Arrow*> getArrows() const { return arrows; }
+
 signals:
     void itemInserted();
     void itemSelected(QGraphicsItem* item);
+
+    void graphChanged();
+    void checkCycle(int from, int to, Arrow* arrow);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

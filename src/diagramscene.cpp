@@ -54,7 +54,7 @@ void DiagramScene::createNode(const QPointF& pos) {
     node->setPen(QPen(Qt::black, 2));
     node->setFlag(QGraphicsItem::ItemIsMovable, true);
     node->setFlag(QGraphicsItem::ItemIsSelectable, true);
-    node->setData(0, nextNodeId);
+    node->setData(0, nextNodeId - 1);
 
     QGraphicsTextItem* text = new QGraphicsTextItem(QString::number(nextNodeId), node);
     text->setDefaultTextColor(Qt::black);
@@ -79,6 +79,12 @@ void DiagramScene::createArrow(QGraphicsEllipseItem* startNode, QGraphicsEllipse
 
     arrows.append(arrow);
     addItem(arrow);
+
+    int fromId = startNode->data(0).toInt();
+    int toId = endNode->data(0).toInt();
+
+    emit checkCycle(fromId, toId, arrow);
+    emit graphChanged();
 }
 
 void DiagramScene::editArrowWeight(Arrow* arrow) {
@@ -89,6 +95,8 @@ void DiagramScene::editArrowWeight(Arrow* arrow) {
         "Введите новый вес:", arrow->getWeight(), 1, 1000, 1, &ok);
     if (ok) {
         arrow->setWeight(newWeight);
+        arrow->setFullWeight(QString::number(newWeight));  
+        emit graphChanged();  
         update();
     }
 }
@@ -131,6 +139,8 @@ void DiagramScene::deleteSelectedItem() {
         }
     }
 
+    emit checkCycle(0, 0, nullptr);
+    emit graphChanged();
     update();
 }
 
@@ -273,7 +283,7 @@ void DiagramScene::loadGraph(const vector<pair<int, pair<int, int>>>& nodesData,
         nodeItems[nodeId] = node;
 
         if (nodeId >= nextNodeId) {
-            nextNodeId = nodeId + 1;
+            nextNodeId = nodeId + 2;
         }
     }
 
@@ -307,29 +317,31 @@ void DiagramScene::loadGraph(const vector<pair<int, pair<int, int>>>& nodesData,
     updateAllArrows();
 }
 
-void DiagramScene::drawWay(QString way)
+void DiagramScene::drawWays(const QStringList& ways)
 {
     clearColors();
 
-    QStringList parts = way.split(" ", Qt::SkipEmptyParts);
-    QVector<int> nodes_in_way;
+    for (const QString& way : ways) {
+        QStringList parts = way.split("-", Qt::SkipEmptyParts);
+        QVector<int> nodes_in_way;
 
-    for (QString& part : parts) {
-        nodes_in_way.append(part.toInt());
-    }
+        for (QString& part : parts) {
+            nodes_in_way.append(part.toInt() - 1);
+        }
 
-    QVector<QPair<int, int>> arrows_in_way;
-    for (int i = 0; i < nodes_in_way.size() - 1; i++) {
-        arrows_in_way.append({ nodes_in_way[i], nodes_in_way[i + 1] });
-    }
-    for (Arrow* arrow : arrows) {
-        int startId = arrow->startItem()->data(0).toInt();
-        int endId = arrow->endItem()->data(0).toInt();
+        QVector<QPair<int, int>> arrows_in_way;
+        for (int i = 0; i < nodes_in_way.size() - 1; i++) {
+            arrows_in_way.append({ nodes_in_way[i], nodes_in_way[i + 1] });
+        }
+        for (Arrow* arrow : arrows) {
+            int startId = arrow->startItem()->data(0).toInt();
+            int endId = arrow->endItem()->data(0).toInt();
 
-        for (const auto& pathArrow : arrows_in_way) {
-            if (startId == pathArrow.first && endId == pathArrow.second) {
-                arrow->setGreat(true); 
-                break;
+            for (const auto& pathArrow : arrows_in_way) {
+                if (startId == pathArrow.first && endId == pathArrow.second) {
+                    arrow->setGreat(true);
+                    break;
+                }
             }
         }
     }

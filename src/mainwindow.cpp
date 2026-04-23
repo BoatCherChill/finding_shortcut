@@ -29,6 +29,9 @@ void MainWindow::setupUI() {
     view->setDragMode(QGraphicsView::NoDrag);
     view->setContextMenuPolicy(Qt::CustomContextMenu);
 
+    connect(scene, &DiagramScene::checkCycle, this, &MainWindow::onCheckCycle);
+    connect(scene, &DiagramScene::graphChanged, this, &MainWindow::syncGraphFromScene);
+
     setCentralWidget(view);
 }
 
@@ -94,7 +97,7 @@ void MainWindow::createToolBar() {
     execBtn->setObjectName("executeButton");
    // execBtn->setEnabled(false);
     bar->addWidget(execBtn);
-    QObject::connect(execBtn, &QPushButton::clicked, this, &MainWindow::executeGraph);
+    QObject::connect(execBtn, &QPushButton::clicked, this, &MainWindow::startExecute);
     execBtn->setEnabled(true);
 
     bar->addSeparator();
@@ -145,6 +148,9 @@ void MainWindow::loadGraph() {
 
     scene->loadGraph(nodesData, arrowsData);
 
+    syncGraphFromScene();
+    onCheckCycle(0, 0, nullptr);
+
     scene->setMode(DiagramScene::EditItems);
     edit_button->setChecked(true);
     updateNodesMovable(true);
@@ -153,8 +159,6 @@ void MainWindow::loadGraph() {
 
 void MainWindow::executeGraph(){
 
-    int lastnode = 10;
-    int firstnode = 1;
     vector<GraphArrow> arrows;
     arrows = graph.getArrowsData();
     ways.clear();
@@ -167,12 +171,12 @@ void MainWindow::executeGraph(){
         if (solution.size() != 0) {
             vector<int> nodes = solution[solution.size() - 1].node;
             bool flagOfExit = false;
-            if (std::find(nodes.begin(), nodes.end(), firstnode) != nodes.end()) {
+            if (std::find(nodes.begin(), nodes.end(), startNode) != nodes.end()) {
                 int position = std::distance(nodes.begin(),
-                    std::find(nodes.begin(), nodes.end(), firstnode));
+                    std::find(nodes.begin(), nodes.end(), startNode));
                 vector<int> path;
                 float a = solution[solution.size() - 1].min_size[position];
-                findSolution(solution, solution.size() - 1, path, ways, firstnode, solution[solution.size()-1].min_size[position]);
+                findSolution(solution, solution.size() - 1, path, ways, startNode, solution[solution.size()-1].min_size[position]);
                 
             }
             if (nodes.size() == 0) break;
@@ -182,17 +186,17 @@ void MainWindow::executeGraph(){
         {
             countLoop++;
             vector<float> node;
-            node.push_back(lastnode);
+            node.push_back(endNode);
             step.dist.push_back(node);
             for (int i = 0; i < weights.size(); i++) {
-                if (weights[i][lastnode - 1] != 0) {
+                if (weights[i][endNode - 1] != 0) {
                     step.node.push_back(i + 1);
                     vector<float> d;
-                    d.push_back(weights[i][lastnode - 1]);
+                    d.push_back(weights[i][endNode - 1]);
                     step.dist.push_back(d);
-                    step.min_size.push_back(weights[i][lastnode - 1]);
+                    step.min_size.push_back(weights[i][endNode - 1]);
                     vector<int> best;
-                    best.push_back(lastnode);
+                    best.push_back(endNode);
                     step.best_var.push_back(best);
                 }
             }
@@ -333,38 +337,47 @@ void MainWindow::findSolution(vector<SolutionPart>& solution, int step, vector<i
     currentPath.pop_back();
 }
 
-//void MainWindow::executeGraph() {
-//
-//    Graph graph;
-//
-//    QDialog dialog(this);
-//    dialog.setWindowTitle("Поиск кратчайшего пути");
-//    dialog.setFixedSize(300, 150);
-//
-//    QFormLayout* layout = new QFormLayout(&dialog);
-//
-//    QLineEdit* start = new QLineEdit();
-//    QLineEdit* end = new QLineEdit();
-//
-//    layout->addRow("Начальный узел:", start);
-//    layout->addRow("Конечный узел:", end);
-//
-//    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
-//
-//    layout->addRow(buttons);
-//
-//    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-//
-//    if (dialog.exec() == QDialog::Accepted) {
-//        graph.startNode = start->text().toInt();
-//        graph.endNode = end->text().toInt();
-//
-//    }
-//
-//    QString way = "1 2 3";
-//
-//    scene->drawWay(way);
-//}
+void MainWindow::startExecute() {
+
+
+    QDialog dialog(this);
+    dialog.setWindowTitle("Поиск кратчайшего пути");
+    dialog.setFixedSize(300, 150);
+
+    QFormLayout* layout = new QFormLayout(&dialog);
+
+    QLineEdit* start = new QLineEdit();
+    QLineEdit* end = new QLineEdit();
+
+    layout->addRow("Начальный узел:", start);
+    layout->addRow("Конечный узел:", end);
+
+    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
+
+    layout->addRow(buttons);
+
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        startNode = start->text().toInt();
+        endNode = end->text().toInt();
+        
+
+    }
+
+    syncGraphFromScene();
+    executeGraph();
+
+    QStringList allPaths;
+    for (const auto& [weight, paths] : ways) {
+        for (const auto& path : paths) {
+            allPaths << QString::fromStdString(path);
+        }
+    }
+    scene->drawWays(allPaths);
+    
+
+}
 
 void MainWindow::printSolution(vector<SolutionPart> s) {
     for (SolutionPart i : s) {
@@ -389,6 +402,62 @@ void MainWindow::printSolution(vector<SolutionPart> s) {
             cout << endl;
         }
         cout << endl;
+    }
+}
+
+void MainWindow::syncGraphFromScene() {
+    vector<GraphArrow> currentArrows;
+    for (Arrow* a : scene->getArrows()) {
+        GraphArrow ga;
+        ga.node_1 = a->startItem()->data(0).toInt();
+        ga.node_2 = a->endItem()->data(0).toInt();
+        ga.weight = to_string(a->getWeight());
+        ga.isLoop = a->getLoop();
+        currentArrows.push_back(ga);
+    }
+
+    graph.rebuildFromArrows(currentArrows);
+}
+
+void MainWindow::onCheckCycle(int from, int to, Arrow* arrow) {
+    syncGraphFromScene();
+
+    graphHasCycle = !graph.isDAG();
+
+    if (graphHasCycle) {
+        vector<pair<int, int>> cycleArrows = graph.findCycleArrows();
+
+        for (Arrow* a : scene->getArrows()) {
+            int f = a->startItem()->data(0).toInt();
+            int t = a->endItem()->data(0).toInt();
+
+            bool isCyclic = false;
+            for (const auto& ca : cycleArrows) {
+                if (ca.first == f && ca.second == t) {
+                    isCyclic = true;
+                    break;
+                }
+            }
+            a->setCycle(isCyclic);
+        }
+
+        if (arrow) {
+            QMessageBox::warning(this, "Цикл", "Эта стрелка создает цикл!");
+        }
+    }
+    else {
+        for (Arrow* a : scene->getArrows()) {
+            a->setCycle(false);
+        }
+    }
+
+    updateExecuteButton();
+}
+
+void MainWindow::updateExecuteButton() {
+    QPushButton* execBtn = findChild<QPushButton*>("executeButton");
+    if (execBtn) {
+        execBtn->setEnabled(!graphHasCycle && !graph.getArrowsData().empty());
     }
 }
 

@@ -23,6 +23,9 @@ public:
     void setGreat(bool great) { isGreat = great; update(); }
     bool getGreat() const { return isGreat; }
 
+    void setCycle(bool cycle) { isCycle = cycle; update(); }
+    bool getCycle() const { return isCycle; }
+
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override; // функция рисования стрелки (инструмент для рисования, параметры объекта рисования, параметры для виджета)
     QRectF boundingRect() const override; // функция, задающая ограничения для стрелки
@@ -35,6 +38,7 @@ private:
     int weight;
     bool isLoop = false; // стрелка дает цикл 
     bool isGreat = false; // стрелка - часть лучшего пути
+    bool isCycle = false;
     
     QString fullWeight;
 
