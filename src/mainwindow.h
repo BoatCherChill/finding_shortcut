@@ -2,8 +2,17 @@
 
 #include <QMainWindow>
 #include <QGraphicsView>
+#include <string>
 #include "diagramscene.h"
+#include <algorithm> 
 #include "graph.h"
+
+struct SolutionPart {
+    vector<int> node;
+    vector<vector<float>> dist;
+    vector<float> min_size;
+    vector<vector<int>> best_var;
+};
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -23,7 +32,13 @@ private:
     void setupUI();
     void createToolBar(); 
     void updateNodesMovable(bool movable);
+    void executeGraph();
+    vector<vector<float>> createDistanceMatrix(const vector<GraphArrow>& arrows);
+    void findSolution(vector<SolutionPart>& solution, int step, vector<int>& currentPath, map<string, float>& result, int currentValue, float minDist);
 
+    void printSolution(vector<SolutionPart> s);
+
+    Graph graph;
     DiagramScene* scene;
     QGraphicsView* view;
     QToolButton* node_button;
