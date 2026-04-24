@@ -162,10 +162,11 @@ void MainWindow::executeGraph(){
     vector<GraphArrow> arrows;
     arrows = graph.getArrowsData();
     ways.clear();
+    solution.clear();
 
     vector<vector<float>> weights = createDistanceMatrix(arrows);
 
-    vector<SolutionPart> solution;
+    
     int countLoop = 0;
     while (true) {
         if (solution.size() != 0) {
@@ -249,12 +250,13 @@ void MainWindow::executeGraph(){
 
         }
         solution.push_back(step);
-        printSolution(solution);
-        cout << "--------------" << endl;
+        
     }
     /*vector<vector<int>> belts;
 
     belts = getBelt(arrows);*/
+    printSolution(this);
+    cout << "--------------" << endl;
 }
 
 vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>& arrows) {
@@ -295,7 +297,7 @@ vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>&
 //    for (int count = 0; )
 //}
 
-void MainWindow::findSolution(vector<SolutionPart>& solution, int step, vector<int>& currentPath, map<float, vector<string>>& result, int currentValue, float minDist) {
+void MainWindow::findSolution(vector<SolutionPart> solution, int step, vector<int>& currentPath, map<float, vector<string>>& result, int currentValue, float minDist) {
 
     currentPath.push_back(currentValue);
 
@@ -379,30 +381,106 @@ void MainWindow::startExecute() {
 
 }
 
-void MainWindow::printSolution(vector<SolutionPart> s) {
-    for (SolutionPart i : s) {
-        int sizenode =  i.node.size();
+void MainWindow::printSolution(QWidget* parent) {
+    QString filePath = QFileDialog::getSaveFileName(
+        parent,
+        "Сохранить файл с результатами",          // Заголовок окна
+        QDir::homePath(),                    // Начальная директория (домашняя папка)
+        "Текстовые файлы (*.txt);" // Фильтры типов файлов
+    );
+
+    // Проверяем, не нажал ли пользователь "Отмена"
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+    // Добавляем расширение .txt, если его нет
+    if (!filePath.endsWith(".txt", Qt::CaseInsensitive)) {
+        filePath += ".txt";
+    }
+
+    // Создаём файл и записываем в него строку
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::warning(parent, "Ошибка",
+            "Не удалось создать или открыть файл для записи:\n" + filePath);
+        return;
+    }
+
+    QTextStream out(&file);
+
+    const int FIELD_WIDTH = 15;
+    const int PRECISION = 3;
+
+    out.setRealNumberNotation(QTextStream::FixedNotation);
+    out.setRealNumberPrecision(PRECISION);
+
+    int count = 0;
+    for (SolutionPart i : solution) {
+        count++;
+        if (count == solution.size()) break;
+        for (int k = 0; k < (FIELD_WIDTH * (i.dist[0].size() + 3) + (i.dist[0].size() + 4)); k++) out << "-";
+        out << qSetFieldWidth(0) << Qt::endl;
+        QString step = "| Step: " + QString::fromStdString(to_string(count));
+        out << step;
+        for (int k = 0; k < (FIELD_WIDTH * (i.dist[0].size() + 3) + (i.dist[0].size() + 4) - step.size() - 1); k++) out << " ";
+        out << qSetFieldWidth(1) << "|";
+
+        out << qSetFieldWidth(0) << Qt::endl;
+
+
+        int sizenode = i.node.size();
         for (int j = -1; j < sizenode; j++) {
+            for (int k = 0; k < (FIELD_WIDTH * (i.dist[0].size() + 3) + (i.dist[0].size() + 4)); k++) out << "-";
+            out << qSetFieldWidth(0) << Qt::endl;
+            out << qSetFieldWidth(1) << "|";
             if (j == -1) {
-                cout << "  ";
+                //cout << "  ";
+                out << qSetFieldWidth(FIELD_WIDTH) << " ";
                 for (int k = 0; k < i.dist[0].size(); k++) {
-                    cout << i.dist[0][k] << "  ";
+                    if (k == 0) out << qSetFieldWidth(1) << "|";
+                    out << qSetFieldWidth(FIELD_WIDTH) << (int)i.dist[0][k];
+                    out << qSetFieldWidth(1) << "|";
                 }
+                for (int k = 0; k < 2; k++) out << qSetFieldWidth(FIELD_WIDTH + 1) << "|";
             }
             else {
-                cout << i.node[j] << "  ";
+                out << qSetFieldWidth(FIELD_WIDTH) << i.node[j];
+                out << qSetFieldWidth(1) << "|";
                 for (int k = 0; k < i.dist[j].size(); k++) {
-                    cout << i.dist[j + 1][k] << "  ";
+                    if (i.dist[j + 1][k] != 1000000) out << qSetFieldWidth(FIELD_WIDTH) << i.dist[j + 1][k];
+                    else out << qSetFieldWidth(FIELD_WIDTH) << "None";
+                    out << qSetFieldWidth(1) << "|";
                 }
-                cout << i.min_size[j] << "  ";
+                out << qSetFieldWidth(FIELD_WIDTH) << i.min_size[j];
+                out << qSetFieldWidth(1) << "|";
+                QString best;
                 for (int k = 0; k < i.best_var[j].size(); k++) {
-                    cout << i.best_var[j][k] << "  ";
+                    if (k != 0) best += ",";
+                    best += QString::fromStdString(to_string(i.best_var[j][k]));
                 }
+                out << qSetFieldWidth(FIELD_WIDTH) << best;
+                out << qSetFieldWidth(1) << "|";
             }
-            cout << endl;
+            out << qSetFieldWidth(0) << Qt::endl;
         }
-        cout << endl;
+        for (int k = 0; k < (FIELD_WIDTH * (i.dist[0].size() + 3) + (i.dist[0].size() + 4)); k++) out << "-";
+        out << qSetFieldWidth(0) << Qt::endl << Qt::endl;
     }
+
+    
+    auto& minElement = *ways.begin(); 
+    int minKey = minElement.first;
+    vector<string> minValue = minElement.second;
+    if (minValue.size() > 1) out << "Best ways: " << Qt::endl;
+    else out << "Best way: " << Qt::endl;
+    out << "Length: " << QString::fromStdString(to_string(minKey)) << Qt::endl;
+    count = 0;
+    for (string str : minValue) {
+        count++;
+        out << QString::fromStdString(to_string(count)) << ") " << QString::fromStdString(str) << Qt::endl;
+    }
+    file.close();
 }
 
 void MainWindow::syncGraphFromScene() {
