@@ -17,8 +17,8 @@ public:
     int getWeight() const { return weight; }
     QString getFullWeight() const { return fullWeight; }
 
-    void setLoop(bool loop) { isLoop = loop; update(); }
-    bool getLoop() const { return isLoop; }
+    void setDouble(bool loop) { isDouble = loop; update(); }
+    bool getDouble() const { return isDouble; }
 
     void setGreat(bool great) { isGreat = great; update(); }
     bool getGreat() const { return isGreat; }
@@ -36,7 +36,7 @@ private:
     QPolygonF arrow_head; // полигон для наконечника
 
     int weight;
-    bool isLoop = false; // стрелка дает цикл 
+    bool isDouble = false; // тдвойная стрелка
     bool isGreat = false; // стрелка - часть лучшего пути
     bool isCycle = false;
     

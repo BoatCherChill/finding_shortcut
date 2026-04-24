@@ -32,7 +32,7 @@ void Graph::convertToArrows() {
 
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
-            if (adj_matrix[i][j] > 0) {
+            if (adj_matrix[i][j] > 0 && i != j) {
                 bool found = false;
 
                 for (auto& visited : arrows) {
@@ -155,30 +155,64 @@ void Graph::rebuildFromArrows(const vector<GraphArrow>& newArrows) {
     }
 }
 
+void Graph::dfsDAG(int v, vector<int>& visited, bool& hasCycle) const {
+    visited[v] = 1;
+    int n = adj_matrix.size();
+
+    for (int u = 0; u < n; u++) {
+        if (adj_matrix[v][u] > 0) {
+            if (visited[u] == 0) {
+                dfsDAG(u, visited, hasCycle);
+            }
+            else if (visited[u] == 1) {
+                hasCycle = true;
+                return;
+            }
+        }
+    }
+    visited[v] = 2;
+}
+
 bool Graph::isDAG() const {
     int n = adj_matrix.size();
     if (n == 0) return true;
 
     vector<int> visited(n, 0);
-
-    function<bool(int)> dfs = [&](int v) {
-        visited[v] = 1;
-        for (int u = 0; u < n; u++) {
-            if (adj_matrix[v][u] > 0) {
-                if (visited[u] == 1) return true;
-                if (visited[u] == 0 && dfs(u)) return true;
-            }
-        }
-        visited[v] = 2;
-        return false;
-        };
+    bool hasCycle = false;
 
     for (int i = 0; i < n; i++) {
         if (visited[i] == 0) {
-            if (dfs(i)) return false;
+            dfsDAG(i, visited, hasCycle);
+            if (hasCycle) return false;
         }
     }
     return true;
+}
+
+void Graph::dfsCycle(int v, vector<int>& visited, vector<int>& parent, vector<pair<int, int>>& cycleArrows) const {
+    visited[v] = 1;  // в стеке
+    int n = adj_matrix.size();
+
+    for (int u = 0; u < n; u++) {
+        if (adj_matrix[v][u] > 0) {
+            if (visited[u] == 0) {
+                parent[u] = v;
+                dfsCycle(u, visited, parent, cycleArrows);
+            }
+            else if (visited[u] == 1) {
+                // Нашли цикл! Добавляем ВСЕ стрелки в этом цикле
+                int current = v;
+                while (current != u && current != -1) {
+                    if (parent[current] != -1) {
+                        cycleArrows.push_back({ parent[current], current });
+                    }
+                    current = parent[current];
+                }
+                cycleArrows.push_back({ v, u });
+            }
+        }
+    }
+    visited[v] = 2;  // обработан
 }
 
 vector<pair<int, int>> Graph::findCycleArrows() const {
@@ -189,34 +223,42 @@ vector<pair<int, int>> Graph::findCycleArrows() const {
     vector<int> parent(n, -1);
     vector<pair<int, int>> cycleArrows;
 
-    function<void(int)> dfs = [&](int v) {
-        visited[v] = 1;
-        for (int u = 0; u < n; u++) {
-            if (adj_matrix[v][u] > 0) {
-                if (visited[u] == 0) {
-                    parent[u] = v;
-                    dfs(u);
-                }
-                else if (visited[u] == 1) {
-                    cycleArrows.push_back({ v, u });
-                    int current = v;
-                    while (current != u && current != -1) {
-                        if (parent[current] != -1) {
-                            cycleArrows.push_back({ parent[current], current });
+    // Запускаем DFS для каждой вершины, даже если она уже посещена
+    for (int i = 0; i < n; i++) {
+        // Сбрасываем visited для поиска новых циклов
+        vector<int> tempVisited(n, 0);
+        vector<int> tempParent(n, -1);
+
+        // Нужно запускать DFS от каждой вершины, не помечая глобально
+        function<void(int)> dfsAll = [&](int v) {
+            tempVisited[v] = 1;
+            for (int u = 0; u < n; u++) {
+                if (adj_matrix[v][u] > 0) {
+                    if (tempVisited[u] == 0) {
+                        tempParent[u] = v;
+                        dfsAll(u);
+                    }
+                    else if (tempVisited[u] == 1) {
+                        int current = v;
+                        while (current != u && current != -1) {
+                            if (tempParent[current] != -1) {
+                                cycleArrows.push_back({ tempParent[current], current });
+                            }
+                            current = tempParent[current];
                         }
-                        current = parent[current];
+                        cycleArrows.push_back({ v, u });
                     }
                 }
             }
-        }
-        visited[v] = 2;
-        };
+            tempVisited[v] = 2;
+            };
 
-    for (int i = 0; i < n; i++) {
-        if (visited[i] == 0) {
-            dfs(i);
-        }
+        dfsAll(i);
     }
+
+    // Удаляем дубликаты
+    sort(cycleArrows.begin(), cycleArrows.end());
+    cycleArrows.erase(unique(cycleArrows.begin(), cycleArrows.end()), cycleArrows.end());
 
     return cycleArrows;
 }

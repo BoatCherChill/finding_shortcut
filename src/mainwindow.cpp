@@ -29,7 +29,7 @@ void MainWindow::setupUI() {
     view->setDragMode(QGraphicsView::NoDrag);
     view->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(scene, &DiagramScene::checkCycle, this, &MainWindow::onCheckCycle);
+    connect(scene, &DiagramScene::checkCycle, this, &MainWindow::checkGraph);
     connect(scene, &DiagramScene::graphChanged, this, &MainWindow::syncGraphFromScene);
 
     setCentralWidget(view);
@@ -95,17 +95,17 @@ void MainWindow::createToolBar() {
 
     QPushButton* execBtn = new QPushButton("Выполнить");
     execBtn->setObjectName("executeButton");
-   // execBtn->setEnabled(false);
     bar->addWidget(execBtn);
     QObject::connect(execBtn, &QPushButton::clicked, this, &MainWindow::startExecute);
-    execBtn->setEnabled(true);
+    execBtn->setEnabled(false);
 
     bar->addSeparator();
 
     QPushButton* saveBtn = new QPushButton("Сохранить решение");
-    saveBtn->setObjectName("saaveButton");
+    saveBtn->setObjectName("saveButton");
     bar->addWidget(saveBtn);
     QObject::connect(saveBtn, &QPushButton::clicked, this, &MainWindow::printSolution);
+    saveBtn->setEnabled(false);
 
     bar->addSeparator();
 }
@@ -156,22 +156,22 @@ void MainWindow::loadGraph() {
     scene->loadGraph(nodesData, arrowsData);
 
     syncGraphFromScene();
-    onCheckCycle(0, 0, nullptr);
+    checkDoubleArrows();
+    checkGraph(0, 0, nullptr);
 
     scene->setMode(DiagramScene::EditItems);
     edit_button->setChecked(true);
     updateNodesMovable(true);
 
+    solution.clear();
+    ways.clear();
+
+    updateExecuteButton();
+    updateSaveButton();
+
 }
 
-void MainWindow::executeGraph(){
-
-    if (startNode == endNode) {
-        QString message = QString("Начальный и конечный узлы пути не могут совпадать.");
-
-        QMessageBox::warning(this, "Ошибка", message);
-        return;
-    }
+void MainWindow::executeGraph(){ 
 
     vector<GraphArrow> arrows;
     arrows = graph.getArrowsData();
@@ -179,7 +179,6 @@ void MainWindow::executeGraph(){
     solution.clear();
 
     vector<vector<float>> weights = createDistanceMatrix(arrows);
-
     
     int countLoop = 0;
     while (true) {
@@ -271,11 +270,7 @@ void MainWindow::executeGraph(){
     belts = getBelt(arrows);*/
     //printSolution(this);
     if (ways.size() == 0) {
-        QString message = QString("Путь из пункта '%1' в пункт '%2' не найден.\n\n"
-            "Возможные причины:\n"
-            "• Отсутствует соединение между пунктами\n"
-            "• Один из пунктов не существует\n"
-            "• Нет доступных маршрутов")
+        QString message = QString("Пути из пункта '%1' в пункт '%2' гнилая дорожка!\n\n")
             .arg(startNode)
             .arg(endNode);
 
@@ -365,7 +360,6 @@ void MainWindow::findSolution(vector<SolutionPart> solution, int step, vector<in
 
 void MainWindow::startExecute() {
 
-
     QDialog dialog(this);
     dialog.setWindowTitle("Поиск кратчайшего пути");
     dialog.setFixedSize(300, 150);
@@ -379,30 +373,50 @@ void MainWindow::startExecute() {
     layout->addRow("Конечный узел:", end);
 
     QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
-
     layout->addRow(buttons);
+    buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
+
+    connect(start, &QLineEdit::textChanged, this, [this, start, end, buttons]() {
+        bool startOk, endOk;
+        start->text().toInt(&startOk);
+        end->text().toInt(&endOk);
+        buttons->button(QDialogButtonBox::Ok)->setEnabled(startOk && endOk);
+        });
+
+    connect(end, &QLineEdit::textChanged, this, [this, start, end, buttons]() {
+        bool startOk, endOk;
+        start->text().toInt(&startOk);
+        end->text().toInt(&endOk);
+        buttons->button(QDialogButtonBox::Ok)->setEnabled(startOk && endOk);
+        });
 
     connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
     if (dialog.exec() == QDialog::Accepted) {
         startNode = start->text().toInt();
         endNode = end->text().toInt();
-        
+    }
+    else {
+        return;
+    }
 
+    if (!checkNodes()) {
+        return; 
     }
 
     syncGraphFromScene();
     executeGraph();
 
     QStringList allPaths;
-    for (const auto& [weight, paths] : ways) {
-        for (const auto& path : paths) {
+    if (!ways.empty()) {
+        for (const auto& path : ways.begin()->second) {
             allPaths << QString::fromStdString(path);
         }
     }
-    scene->drawWays(allPaths);
-    
+    scene->drawWays(allPaths); 
 
+    updateSaveButton();
 }
 
 void MainWindow::printSolution() {
@@ -532,22 +546,38 @@ void MainWindow::syncGraphFromScene() {
         ga.node_1 = a->startItem()->data(0).toInt();
         ga.node_2 = a->endItem()->data(0).toInt();
         ga.weight = to_string(a->getWeight());
-        ga.isLoop = a->getLoop();
+        ga.isLoop = a->getDouble(); 
         currentArrows.push_back(ga);
     }
 
     graph.rebuildFromArrows(currentArrows);
+
+    updateExecuteButton();
+    updateSaveButton();
+
 }
 
-void MainWindow::onCheckCycle(int from, int to, Arrow* arrow) {
+void MainWindow::checkGraph(int from, int to, Arrow* arrow) {
     syncGraphFromScene();
 
-    graphHasCycle = !graph.isDAG();
+    hasCycle = !graph.isDAG();
+    checkDoubleArrows();
 
-    if (graphHasCycle) {
+    if (hasCycle || hasDouble) {
+        QString message = "Граф содержит цикл"; 
+        QMessageBox::warning(this, "Ошибка", message);
+    }
+
+    for (Arrow* a : scene->getArrows()) {
+        a->setGreat(false);
+    }
+
+    if (hasCycle) {
         vector<pair<int, int>> cycleArrows = graph.findCycleArrows();
 
         for (Arrow* a : scene->getArrows()) {
+            if (a->getDouble()) continue;
+
             int f = a->startItem()->data(0).toInt();
             int t = a->endItem()->data(0).toInt();
 
@@ -558,26 +588,75 @@ void MainWindow::onCheckCycle(int from, int to, Arrow* arrow) {
                     break;
                 }
             }
-            a->setCycle(isCyclic);
-        }
 
-        if (arrow) {
-            QMessageBox::warning(this, "Цикл", "Эта стрелка создает цикл!");
+            a->setCycle(isCyclic);
         }
     }
     else {
         for (Arrow* a : scene->getArrows()) {
-            a->setCycle(false);
+            if (!a->getDouble()) {
+                a->setCycle(false);
+            }
         }
     }
 
+
+    solution.clear();
+    ways.clear();
+
     updateExecuteButton();
+    updateSaveButton();
+}
+
+bool MainWindow::checkNodes()
+{
+    if (startNode == endNode) {
+        QMessageBox::warning(this, "Ошибка", "Начальный и конечный узлы не могут совпадать!");
+        return false;
+    }
+
+    QList<int> nodes;
+    for (QGraphicsItem* item : scene->items()) {
+        if (QGraphicsEllipseItem* node = qgraphicsitem_cast<QGraphicsEllipseItem*>(item)) {
+            nodes.append(node->data(0).toInt() + 1);
+        }
+    }
+
+    bool startExists = false;
+    bool endExists = false;
+    for (int id : nodes) {
+        if (id == startNode) startExists = true;
+        if (id == endNode) endExists = true;
+    }
+
+    if (!startExists || !endExists) {
+        QMessageBox::warning(this, "Ошибка", "Один или оба введенных узла не найдены! Введите ID узлов, которые есть на сцене!!");
+        return false;
+    }
 }
 
 void MainWindow::updateExecuteButton() {
     QPushButton* execBtn = findChild<QPushButton*>("executeButton");
     if (execBtn) {
-        execBtn->setEnabled(!graphHasCycle && !graph.getArrowsData().empty());
+        execBtn->setEnabled(!hasCycle && !hasDouble && !graph.getArrowsData().empty());
     }
 }
 
+void MainWindow::updateSaveButton() {
+    QPushButton* saveBtn = findChild<QPushButton*>("saveButton");
+    if (saveBtn) {
+        saveBtn->setEnabled(!hasCycle && !hasDouble && !graph.getArrowsData().empty() && solution.size() != 0);
+    }
+}
+
+void MainWindow::checkDoubleArrows() {
+    hasDouble = false;
+
+    for (Arrow* a : scene->getArrows()) {
+        if (a->getDouble()) {  
+            hasDouble = true;
+            a->setCycle(true);  
+            a->setDouble(true);
+        }
+    }
+}

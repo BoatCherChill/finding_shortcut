@@ -32,10 +32,11 @@ private slots:
     void startExecute();
     void syncGraphFromScene();
 
-    void onCheckCycle(int from, int to, Arrow* arrow);
-    void updateExecuteButton();
-
     void printSolution();
+
+    void checkGraph(int from, int to, Arrow* arrow);
+    void updateExecuteButton();
+    void updateSaveButton();
 
 private:
     void setupUI();
@@ -45,9 +46,11 @@ private:
     vector<vector<float>> createDistanceMatrix(const vector<GraphArrow>& arrows);
     void findSolution(vector<SolutionPart> solution, int step, vector<int>& currentPath, map<float, vector<string>>& result, int currentValue, float minDist);
 
-    
+    bool checkNodes();
+    void checkDoubleArrows();
 
-    bool graphHasCycle = false;
+    bool hasCycle = false;
+    bool hasDouble = false;
 
     map<float, vector<string>> ways;
     vector<SolutionPart> solution;
@@ -58,7 +61,7 @@ private:
     QToolButton* node_button;
     QToolButton* arrow_button;
     QToolButton* edit_button;
-
+    QToolButton* save_button;
 
     int startNode;
     int endNode;

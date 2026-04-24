@@ -25,6 +25,7 @@ struct GraphNode {
     QVector<int> prev_nodesID;
     int K;
     pair<int, int> coordinates;
+    bool inCycle;
 };
 
 struct GraphArrow {
@@ -40,29 +41,21 @@ private:
     vector<vector<int>> adj_matrix;
     vector<GraphArrow> arrows;
     map <int, vector<int>> zones;
-    //vector<vector<int>> adjacencyMatrix();
-    //bool troubles();
+    void dfsCycle(int v, vector<int>& visited, vector<int>& parent, vector<pair<int, int>>& cycleArrows) const;
+    void dfsDAG(int v, vector<int>& visited, bool& hasCycle) const;
 
 public:
-    //void execute();
     void loadMatrix(const string& filename);
     void convertToArrows();
     void findZone();
 
     vector<pair<int, pair<int, int>>> getNodesData() const;
     vector<GraphArrow> getArrowsData() const;
-
     void rebuildFromArrows(const vector<GraphArrow>& newArrows);
 
     bool isDAG() const;
     vector<pair<int, int>> findCycleArrows() const;
 
-
-    //Node* findNodeById(int id); // функция поиска узла по ID
-    //void addNode(int x, int y, NodeType type); // функция добавления узла
-    //void deleteNode(int id); // функция удаления узла
-    //void addRelation(int fromId, int toId); // функция добавления связи между узлами
-    //void deleteRelation(int fromId, int toId); // функция удаления связи между узлами
 
 
 };

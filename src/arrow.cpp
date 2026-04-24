@@ -21,7 +21,7 @@ QRectF Arrow::boundingRect() const {
 void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
     // настроить перо
     QPen myPen = pen();
-    if (isLoop || isCycle)
+    if (isDouble || isCycle)
         myPen.setColor(Qt::red);
     else if (isGreat)
         myPen.setColor(Qt::green);
@@ -57,7 +57,7 @@ void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) 
     painter->drawLine(start_point, end_point); // нарисовать линию между точками
 
     // Нарисовать наконечник
-    if (!isLoop) {
+    if (!isDouble) {
         qreal arrow_size = 15;
         QPointF arrow_left = end_point - QPointF(dirX * arrow_size - perpX * arrow_size / 2, dirY * arrow_size - perpY * arrow_size / 2);
         QPointF arrow_right = end_point - QPointF(dirX * arrow_size + perpX * arrow_size / 2, dirY * arrow_size + perpY * arrow_size / 2);

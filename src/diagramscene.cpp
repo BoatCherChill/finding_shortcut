@@ -68,22 +68,50 @@ void DiagramScene::createNode(const QPointF& pos) {
 void DiagramScene::createArrow(QGraphicsEllipseItem* startNode, QGraphicsEllipseItem* endNode) {
     if (!startNode || !endNode || startNode == endNode) return;
 
+    for (Arrow* a : arrows) {
+        if (a->startItem() == startNode && a->endItem() == endNode) {
+            return;
+        }
+    }
+
+    Arrow* existingReverseArrow = nullptr;
+    for (Arrow* a : arrows) {
+        if (a->startItem() == endNode && a->endItem() == startNode) {
+            existingReverseArrow = a;
+            break;
+        }
+    }
+
     Arrow* arrow = new Arrow(startNode, endNode);
 
     bool ok;
     int weight = QInputDialog::getInt(nullptr, "Вес связи", "Введите вес (положительное число):", 1, 1, 1000, 1, &ok);
-    if (ok) {
-
-        arrow->setWeight(weight);
+    if (!ok) {
+        delete arrow;
+        return;
     }
 
-    arrows.append(arrow);
-    addItem(arrow);
+    arrow->setWeight(weight);
+    arrow->setFullWeight(QString::number(weight));
 
-    int fromId = startNode->data(0).toInt();
-    int toId = endNode->data(0).toInt();
+    // Если есть обратная стрелка - делаем обе двойными
+    if (existingReverseArrow) {
+        existingReverseArrow->setDouble(true);
 
-    emit checkCycle(fromId, toId, arrow);
+        int fromId = startNode->data(0).toInt();
+        int toId = endNode->data(0).toInt();
+        emit checkCycle(fromId, toId, nullptr);
+        emit graphChanged();
+    }
+    else {
+        arrows.append(arrow);
+        addItem(arrow);
+
+        int fromId = startNode->data(0).toInt();
+        int toId = endNode->data(0).toInt();
+        emit checkCycle(fromId, toId, arrow);
+    }
+
     emit graphChanged();
 }
 
@@ -294,7 +322,7 @@ void DiagramScene::loadGraph(const vector<pair<int, pair<int, int>>>& nodesData,
         if (fromIt != nodeItems.end() && toIt != nodeItems.end()) {
             ::Arrow* arrow = new ::Arrow(fromIt->second, toIt->second);
 
-            arrow->setLoop(arrowData.isLoop);
+            arrow->setDouble(arrowData.isLoop);
 
             QString weightStr = QString::fromStdString(arrowData.weight);
             if (weightStr.contains(",")) {
