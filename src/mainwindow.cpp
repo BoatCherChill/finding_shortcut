@@ -166,6 +166,13 @@ void MainWindow::loadGraph() {
 
 void MainWindow::executeGraph(){
 
+    if (startNode == endNode) {
+        QString message = QString("Начальный и конечный узлы пути не могут совпадать.");
+
+        QMessageBox::warning(this, "Ошибка", message);
+        return;
+    }
+
     vector<GraphArrow> arrows;
     arrows = graph.getArrowsData();
     ways.clear();
@@ -399,7 +406,13 @@ void MainWindow::startExecute() {
 }
 
 void MainWindow::printSolution() {
-    if (solution.size() == 0) return;
+    if (solution.size() == 0) {
+        QString message = QString("Необходимо сначала выполнить расчет кратчайшего пути для графа.");
+
+        QMessageBox::warning(this, "Путь не найден", message);
+        return;
+    }
+
 
     QString filePath = QFileDialog::getSaveFileName(
         this,
