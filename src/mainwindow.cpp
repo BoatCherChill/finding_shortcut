@@ -454,5 +454,19 @@ void MainWindow::printSolution(QWidget* parent) {
         for (int k = 0; k < (FIELD_WIDTH * (i.dist[0].size() + 3) + (i.dist[0].size() + 4)); k++) out << "-";
         out << qSetFieldWidth(0) << Qt::endl << Qt::endl;
     }
+
+    
+    auto& minElement = *ways.begin(); 
+    int minKey = minElement.first;
+    vector<string> minValue = minElement.second;
+    if (minValue.size() > 1) out << "Best ways: " << Qt::endl;
+    else out << "Best way: " << Qt::endl;
+    out << "Length: " << QString::fromStdString(to_string(minKey)) << Qt::endl;
+    count = 0;
+    for (string str : minValue) {
+        count++;
+        out << QString::fromStdString(to_string(count)) << ") " << QString::fromStdString(str) << Qt::endl;
+    }
+    file.close();
 }
 
