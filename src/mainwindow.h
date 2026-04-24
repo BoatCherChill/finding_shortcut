@@ -5,6 +5,7 @@
 #include <string>
 #include "diagramscene.h"
 #include <algorithm> 
+#include <qmessagebox.h>
 #include <qfile.h>
 #include "graph.h"
 

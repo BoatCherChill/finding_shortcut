@@ -256,7 +256,17 @@ void MainWindow::executeGraph(){
 
     belts = getBelt(arrows);*/
     printSolution(this);
-    cout << "--------------" << endl;
+    if (ways.size() == 0) {
+        QString message = QString("Путь из пункта '%1' в пункт '%2' не найден.\n\n"
+            "Возможные причины:\n"
+            "• Отсутствует соединение между пунктами\n"
+            "• Один из пунктов не существует\n"
+            "• Нет доступных маршрутов")
+            .arg(startNode)
+            .arg(endNode);
+
+        QMessageBox::information(this, "Путь не найден", message);
+    }
 }
 
 vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>& arrows) {
@@ -382,6 +392,8 @@ void MainWindow::startExecute() {
 }
 
 void MainWindow::printSolution(QWidget* parent) {
+    if (solution.size() == 0) return;
+
     QString filePath = QFileDialog::getSaveFileName(
         parent,
         "Сохранить файл с результатами",          // Заголовок окна
@@ -468,19 +480,29 @@ void MainWindow::printSolution(QWidget* parent) {
         out << qSetFieldWidth(0) << Qt::endl << Qt::endl;
     }
 
-    
-    auto& minElement = *ways.begin(); 
-    int minKey = minElement.first;
-    vector<string> minValue = minElement.second;
-    if (minValue.size() > 1) out << "Best ways: " << Qt::endl;
-    else out << "Best way: " << Qt::endl;
-    out << "Length: " << QString::fromStdString(to_string(minKey)) << Qt::endl;
-    count = 0;
-    for (string str : minValue) {
-        count++;
-        out << QString::fromStdString(to_string(count)) << ") " << QString::fromStdString(str) << Qt::endl;
+    if (ways.size() != 0) {
+        auto& minElement = *ways.begin();
+        int minKey = minElement.first;
+        vector<string> minValue = minElement.second;
+        if (minValue.size() > 1) out << "Best ways ("  << QString::fromStdString(to_string(startNode))  << " -> " << QString::fromStdString(to_string(endNode))  << "): " << Qt::endl;
+        else out << "Best way: " << Qt::endl;
+        out << "Length: " << QString::fromStdString(to_string(minKey)) << Qt::endl;
+        count = 0;
+        for (string str : minValue) {
+            count++;
+            out << QString::fromStdString(to_string(count)) << ") " << QString::fromStdString(str) << Qt::endl;
+        }
+    }
+    else {
+        out << "No ways found (" << QString::fromStdString(to_string(startNode))  << " -> " << QString::fromStdString(to_string(endNode))  << ")" << Qt::endl;
     }
     file.close();
+
+    QString message = QString("Файл сохранен в директорию:\n'%1'")
+        .arg(filePath);
+
+    QMessageBox::information(this, "Файл сохранен", message);
+
 }
 
 void MainWindow::syncGraphFromScene() {
