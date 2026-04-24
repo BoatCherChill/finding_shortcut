@@ -173,6 +173,7 @@ void MainWindow::loadGraph() {
 
 void MainWindow::executeGraph(){ 
 
+
     vector<GraphArrow> arrows;
     arrows = graph.getArrowsData();
     ways.clear();
@@ -551,6 +552,9 @@ void MainWindow::syncGraphFromScene() {
     }
 
     graph.rebuildFromArrows(currentArrows);
+
+    solution.clear();
+    ways.clear();
 
     updateExecuteButton();
     updateSaveButton();
