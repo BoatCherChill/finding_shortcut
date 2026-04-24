@@ -5,6 +5,7 @@
 #include <string>
 #include "diagramscene.h"
 #include <algorithm> 
+#include <qfile.h>
 #include "graph.h"
 
 struct SolutionPart {
@@ -34,11 +35,12 @@ private:
     void updateNodesMovable(bool movable);
     void executeGraph();
     vector<vector<float>> createDistanceMatrix(const vector<GraphArrow>& arrows);
-    void findSolution(vector<SolutionPart>& solution, int step, vector<int>& currentPath, map<float, vector<string>>& result, int currentValue, float minDist);
+    void findSolution(vector<SolutionPart> solution, int step, vector<int>& currentPath, map<float, vector<string>>& result, int currentValue, float minDist);
 
-    void printSolution(vector<SolutionPart> s);
+    void printSolution(QWidget* parent = nullptr);
 
     map<float, vector<string>> ways;
+    vector<SolutionPart> solution;
 
     Graph graph;
     DiagramScene* scene;
