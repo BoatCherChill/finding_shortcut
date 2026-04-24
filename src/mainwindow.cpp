@@ -101,6 +101,13 @@ void MainWindow::createToolBar() {
     execBtn->setEnabled(true);
 
     bar->addSeparator();
+
+    QPushButton* saveBtn = new QPushButton("Сохранить решение");
+    saveBtn->setObjectName("saaveButton");
+    bar->addWidget(saveBtn);
+    QObject::connect(saveBtn, &QPushButton::clicked, this, &MainWindow::printSolution);
+
+    bar->addSeparator();
 }
 
 void MainWindow::setNodeMode() {
@@ -255,7 +262,7 @@ void MainWindow::executeGraph(){
     /*vector<vector<int>> belts;
 
     belts = getBelt(arrows);*/
-    printSolution(this);
+    //printSolution(this);
     if (ways.size() == 0) {
         QString message = QString("Путь из пункта '%1' в пункт '%2' не найден.\n\n"
             "Возможные причины:\n"
@@ -391,11 +398,11 @@ void MainWindow::startExecute() {
 
 }
 
-void MainWindow::printSolution(QWidget* parent) {
+void MainWindow::printSolution() {
     if (solution.size() == 0) return;
 
     QString filePath = QFileDialog::getSaveFileName(
-        parent,
+        this,
         "Сохранить файл с результатами",          // Заголовок окна
         QDir::homePath(),                    // Начальная директория (домашняя папка)
         "Текстовые файлы (*.txt);" // Фильтры типов файлов
@@ -414,7 +421,7 @@ void MainWindow::printSolution(QWidget* parent) {
     // Создаём файл и записываем в него строку
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::warning(parent, "Ошибка",
+        QMessageBox::warning(this, "Ошибка",
             "Не удалось создать или открыть файл для записи:\n" + filePath);
         return;
     }

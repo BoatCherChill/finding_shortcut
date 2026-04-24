@@ -35,6 +35,8 @@ private slots:
     void onCheckCycle(int from, int to, Arrow* arrow);
     void updateExecuteButton();
 
+    void printSolution();
+
 private:
     void setupUI();
     void createToolBar(); 
@@ -43,7 +45,7 @@ private:
     vector<vector<float>> createDistanceMatrix(const vector<GraphArrow>& arrows);
     void findSolution(vector<SolutionPart> solution, int step, vector<int>& currentPath, map<float, vector<string>>& result, int currentValue, float minDist);
 
-    void printSolution(QWidget* parent = nullptr);
+    
 
     bool graphHasCycle = false;
 
