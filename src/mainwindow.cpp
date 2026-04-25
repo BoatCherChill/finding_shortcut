@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "diagramscene.h"
 #include "graph.h"
+#include <fstream>
 #include <QtWidgets>
 #include <QToolButton>
 #include <QButtonGroup>
