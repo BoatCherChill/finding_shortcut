@@ -637,6 +637,7 @@ bool MainWindow::checkNodes()
         QMessageBox::warning(this, "Ошибка", "Один или оба введенных узла не найдены! Введите ID узлов, которые есть на сцене!!");
         return false;
     }
+    return true;
 }
 
 void MainWindow::updateExecuteButton() {
