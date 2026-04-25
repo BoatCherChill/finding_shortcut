@@ -69,16 +69,8 @@ void DiagramScene::createArrow(QGraphicsEllipseItem* startNode, QGraphicsEllipse
     if (!startNode || !endNode || startNode == endNode) return;
 
     for (Arrow* a : arrows) {
-        if (a->startItem() == startNode && a->endItem() == endNode) {
+        if (a->startItem() == startNode && a->endItem() == endNode || a->startItem() == endNode && a->endItem() == startNode) {
             return;
-        }
-    }
-
-    Arrow* existingReverseArrow = nullptr;
-    for (Arrow* a : arrows) {
-        if (a->startItem() == endNode && a->endItem() == startNode) {
-            existingReverseArrow = a;
-            break;
         }
     }
 
@@ -94,25 +86,12 @@ void DiagramScene::createArrow(QGraphicsEllipseItem* startNode, QGraphicsEllipse
     arrow->setWeight(weight);
     arrow->setFullWeight(QString::number(weight));
 
-    // Если есть обратная стрелка - делаем обе двойными
-    if (existingReverseArrow) {
-        existingReverseArrow->setDouble(true);
+    arrows.append(arrow);
+    addItem(arrow);
 
-        int fromId = startNode->data(0).toInt();
-        int toId = endNode->data(0).toInt();
-        emit checkCycle(fromId, toId, nullptr);
-        emit graphChanged();
-    }
-    else {
-        arrows.append(arrow);
-        addItem(arrow);
-
-        int fromId = startNode->data(0).toInt();
-        int toId = endNode->data(0).toInt();
-        emit checkCycle(fromId, toId, arrow);
-    }
-
-    emit graphChanged();
+    int fromId = startNode->data(0).toInt();
+    int toId = endNode->data(0).toInt();
+    emit graphChanged(fromId, toId, arrow);
 }
 
 void DiagramScene::editArrowWeight(Arrow* arrow) {
@@ -124,7 +103,9 @@ void DiagramScene::editArrowWeight(Arrow* arrow) {
     if (ok) {
         arrow->setWeight(newWeight);
         arrow->setFullWeight(QString::number(newWeight));  
-        emit graphChanged();  
+        int fromId = arrow->startItem()->data(0).toInt();
+        int toId = arrow->endItem()->data(0).toInt();
+        emit graphChanged(fromId, toId, arrow);
         update();
     }
 }
@@ -167,8 +148,7 @@ void DiagramScene::deleteSelectedItem() {
         }
     }
 
-    emit checkCycle(0, 0, nullptr);
-    emit graphChanged();
+    emit graphChanged(0, 0, nullptr);
     update();
 }
 

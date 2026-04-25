@@ -29,8 +29,7 @@ void MainWindow::setupUI() {
     view->setDragMode(QGraphicsView::NoDrag);
     view->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(scene, &DiagramScene::checkCycle, this, &MainWindow::checkGraph);
-    connect(scene, &DiagramScene::graphChanged, this, &MainWindow::syncGraphFromScene);
+    connect(scene, &DiagramScene::graphChanged, this, &MainWindow::onGraphChanged);
 
     setCentralWidget(view);
 }
@@ -148,7 +147,18 @@ void MainWindow::deleteItem() {
 void MainWindow::loadGraph() {
     QString fileName = QFileDialog::getOpenFileName(this, "Открыть файл", "", "Text files (*.txt)");
     if (fileName.isEmpty()) return;
-    graph.loadMatrix(fileName.toStdString());
+    
+    Graph tempGraph;
+    tempGraph.loadMatrix(fileName.toStdString());
+
+    if (tempGraph.getArrowsData().empty() && tempGraph.getNodesData().empty()) {
+        QMessageBox::warning(this, "Ошибка загрузки",
+            "Не удалось загрузить граф из файла.\n");
+        return;
+    }
+
+    // Загрузка успешна - заменяем граф
+    graph = tempGraph;
 
     auto nodesData = graph.getNodesData();
     auto arrowsData = graph.getArrowsData();
@@ -157,7 +167,7 @@ void MainWindow::loadGraph() {
 
     syncGraphFromScene();
     checkDoubleArrows();
-    checkGraph(0, 0, nullptr);
+    onGraphChanged(0, 0, nullptr);
 
     scene->setMode(DiagramScene::EditItems);
     edit_button->setChecked(true);
@@ -370,6 +380,10 @@ void MainWindow::startExecute() {
     QLineEdit* start = new QLineEdit();
     QLineEdit* end = new QLineEdit();
 
+    QIntValidator* validator = new QIntValidator(1, 999, this);  
+    start->setValidator(validator);
+    end->setValidator(validator);
+
     layout->addRow("Начальный узел:", start);
     layout->addRow("Конечный узел:", end);
 
@@ -555,22 +569,13 @@ void MainWindow::syncGraphFromScene() {
 
     solution.clear();
     ways.clear();
-
-    updateExecuteButton();
-    updateSaveButton();
-
 }
 
-void MainWindow::checkGraph(int from, int to, Arrow* arrow) {
+void MainWindow::onGraphChanged(int from, int to, Arrow* arrow) {
     syncGraphFromScene();
 
     hasCycle = !graph.isDAG();
     checkDoubleArrows();
-
-    if (hasCycle || hasDouble) {
-        QString message = "Граф содержит цикл"; 
-        QMessageBox::warning(this, "Ошибка", message);
-    }
 
     for (Arrow* a : scene->getArrows()) {
         a->setGreat(false);

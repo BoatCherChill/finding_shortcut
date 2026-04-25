@@ -22,6 +22,20 @@ void Graph::loadMatrix(const string& filename) {
         adj_matrix.push_back(row);
     }
 
+    if (!adj_matrix.empty()) {
+        int size = adj_matrix.size();
+        for (const auto& row : adj_matrix) {
+            if (row.size() != size) {
+                adj_matrix.clear();
+                return;
+            }
+        }
+    }
+
+    if (adj_matrix.empty()) {
+        return;
+    }
+
     convertToArrows();
     findZone();
 }

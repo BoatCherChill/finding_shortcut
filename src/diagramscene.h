@@ -42,8 +42,7 @@ signals:
     void itemInserted();
     void itemSelected(QGraphicsItem* item);
 
-    void graphChanged();
-    void checkCycle(int from, int to, Arrow* arrow);
+    void graphChanged(int from, int to, Arrow* arrow);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

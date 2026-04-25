@@ -34,7 +34,7 @@ private slots:
 
     void printSolution();
 
-    void checkGraph(int from, int to, Arrow* arrow);
+    void onGraphChanged(int from, int to, Arrow* arrow);
     void updateExecuteButton();
     void updateSaveButton();
 
