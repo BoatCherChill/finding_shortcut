@@ -12,9 +12,9 @@ public:
     QGraphicsEllipseItem* startItem() const { return current_start; }
     QGraphicsEllipseItem* endItem() const { return current_end; }
 
-    void setWeight(int w) { weight = w; }
+    void setWeight(float w) { weight = w; }
     void setFullWeight(const QString& w) { fullWeight = w; }
-    int getWeight() const { return weight; }
+    float getWeight() const { return weight; }
     QString getFullWeight() const { return fullWeight; }
 
     void setDouble(bool loop) { isDouble = loop; update(); }
@@ -35,7 +35,7 @@ private:
     QGraphicsEllipseItem* current_end; // указатель на конечный узел
     QPolygonF arrow_head; // полигон для наконечника
 
-    int weight;
+    float weight;
     bool isDouble = false; // тдвойная стрелка
     bool isGreat = false; // стрелка - часть лучшего пути
     bool isCycle = false;

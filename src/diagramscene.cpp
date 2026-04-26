@@ -77,7 +77,8 @@ void DiagramScene::createArrow(QGraphicsEllipseItem* startNode, QGraphicsEllipse
     Arrow* arrow = new Arrow(startNode, endNode);
 
     bool ok;
-    int weight = QInputDialog::getInt(nullptr, "Вес связи", "Введите вес (положительное число):", 1, 1, 1000, 1, &ok);
+    float weight = QInputDialog::getDouble(nullptr, "Вес связи",
+        "Введите вес (положительное число):", 1.0, 1.0, 1000.0, 3, &ok);
     if (!ok) {
         delete arrow;
         return;
@@ -98,8 +99,8 @@ void DiagramScene::editArrowWeight(Arrow* arrow) {
     if (!arrow) return;
 
     bool ok;
-    int newWeight = QInputDialog::getInt(nullptr, "Редактирование веса",
-        "Введите новый вес:", arrow->getWeight(), 1, 1000, 1, &ok);
+    float newWeight = QInputDialog::getDouble(nullptr, "Редактирование веса",
+        "Введите новый вес:", arrow->getWeight(), 1.0, 1000.0, 3, &ok);
     if (ok) {
         arrow->setWeight(newWeight);
         arrow->setFullWeight(QString::number(newWeight));  

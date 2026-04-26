@@ -148,6 +148,15 @@ void MainWindow::deleteItem() {
 void MainWindow::loadGraph() {
     QString fileName = QFileDialog::getOpenFileName(this, "Открыть файл", "", "Text files (*.txt)");
     if (fileName.isEmpty()) return;
+
+    for (const QChar& ch : fileName) {
+        // Диапазоны кириллицы
+        if ((ch.unicode() >= 0x0400 && ch.unicode() <= 0x04FF) || (ch.unicode() >= 0x0500 && ch.unicode() <= 0x052F)) {
+            QMessageBox::warning(this, "Ошибка загрузки",
+                "Директория файла содержит кириллицу.\nВыберите файл, содержащий только латинские буквы!\n");
+            return;
+        }
+    }
     
     Graph tempGraph;
     tempGraph.loadMatrix(fileName.toStdString());
