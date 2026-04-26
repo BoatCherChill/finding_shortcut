@@ -53,3 +53,9 @@ if(WINDEPLOYQT_EXECUTABLE)
         COMMENT "Running windeployqt to copy Qt DLLs and plugins..."
     )
 endif()
+
+if(WIN32) # Отмена запуска консоли
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        WIN32_EXECUTABLE TRUE
+    )
+endif()
