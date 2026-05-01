@@ -3,23 +3,23 @@
 #include <QtMath>
 #include <QGraphicsScene>
 
-//конструктор стрелки (начальный узел, конечный узел)
+// Конструктор стрелки (начальный узел, конечный узел)
 Arrow::Arrow(QGraphicsEllipseItem* start, QGraphicsEllipseItem* end) : current_start(start), current_end(end) {
-    setFlag(QGraphicsItem::ItemIsSelectable, true); // разрешить выделение стрелки
+    setFlag(QGraphicsItem::ItemIsSelectable, true); // Разрешить выделение стрелки
     setPen(QPen(Qt::black, 2));
 }
 
-// функция вычисления области перерисовки стрелки
+// Метод, задающий видимые ограничения для стрелки
 QRectF Arrow::boundingRect() const {
-    qreal extra = (pen().width() + 20) / 2.0; // дополнительный запас для наконечника
+    qreal extra = (pen().width() + 20) / 2.0; // Дополнительный запас для наконечника
     return QRectF(line().p1(), QSizeF(line().p2().x() - line().p1().x(), line().p2().y() - line().p1().y()))
-        .normalized() // модуль
+        .normalized() // Модуль
         .adjusted(-extra, -extra, extra, extra);
 }
 
-// функция отрисовки стрелки (инструмент для рисования, параметры объекта рисования, параметры для виджета)
+// Метод рисования стрелки (инструмент для рисования, параметры объекта рисования, параметры для виджета)
 void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
-    // настроить перо
+    // Настроить перо
     QPen myPen = pen();
     if (isDouble || isCycle)
         myPen.setColor(Qt::red);
@@ -30,11 +30,11 @@ void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) 
 
     painter->setPen(myPen);
 
-    // вычислить координаты начального и конечного узлов
+    // Вычислить координаты начального и конечного узлов
     QPointF start_position = current_start->pos();
     QPointF end_position = current_end->pos();
 
-    // вычислить направления и длины
+    // Вычислить направления и длины
     double delta_x = end_position.x() - start_position.x();
     double delta_y = end_position.y() - start_position.y();
     double length = sqrt(delta_x * delta_x + delta_y * delta_y);
@@ -50,11 +50,11 @@ void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) 
 
     double offset = 35; // Отступ от центра узла
 
-    // нарисовать точки начала и конца линии с отступами от центров
+    // Нарисовать точки начала и конца линии с отступами от центров
     QPointF start_point(start_position.x() + dirX * offset, start_position.y() + dirY * offset);
     QPointF end_point(end_position.x() - dirX * offset, end_position.y() - dirY * offset);
 
-    painter->drawLine(start_point, end_point); // нарисовать линию между точками
+    painter->drawLine(start_point, end_point); // Нарисовать линию между точками
 
     // Нарисовать наконечник
     if (!isDouble) {
@@ -97,11 +97,11 @@ void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) 
     }
 }
 
-// функция обновления позиции стрелки при перемещении узлов
+// Метод обновления координат стрелки после изменения координат узлов
 void Arrow::updatePosition() {
     if (!current_start || !current_end)
         return;
-    QLineF line(mapFromItem(current_start, 0, 0), mapFromItem(current_end, 0, 0)); // пересчитать положение в локальных координатах (относительно стрелки)
+    QLineF line(mapFromItem(current_start, 0, 0), mapFromItem(current_end, 0, 0)); // Пересчитать положение в локальных координатах (относительно стрелки)
     setLine(line);
     update();
 }

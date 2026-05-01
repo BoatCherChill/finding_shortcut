@@ -14,6 +14,7 @@
 #include <cmath>
 #include <map>
 
+// Конструктор класса
 DiagramScene::DiagramScene(QMenu* itemMenu, QObject* parent)
     : QGraphicsScene(parent), my_menu(itemMenu), tempLine(nullptr), tempStartNode(nullptr), nextNodeId(1)
 {
@@ -21,6 +22,7 @@ DiagramScene::DiagramScene(QMenu* itemMenu, QObject* parent)
     setBackgroundBrush(Qt::white);
 }
 
+// Метод установки текущего режима работы
 void DiagramScene::setMode(Mode mode) {
     my_mode = mode;
 
@@ -47,6 +49,7 @@ void DiagramScene::setMode(Mode mode) {
     }
 }
 
+// Метод создания нового узла
 void DiagramScene::createNode(const QPointF& pos) {
     QGraphicsEllipseItem* node = new QGraphicsEllipseItem(-30, -30, 60, 60);
     node->setPos(pos);
@@ -65,6 +68,7 @@ void DiagramScene::createNode(const QPointF& pos) {
     nextNodeId++;
 }
 
+// Метод создания новой связи
 void DiagramScene::createArrow(QGraphicsEllipseItem* startNode, QGraphicsEllipseItem* endNode) {
     if (!startNode || !endNode || startNode == endNode) return;
 
@@ -95,6 +99,7 @@ void DiagramScene::createArrow(QGraphicsEllipseItem* startNode, QGraphicsEllipse
     emit graphChanged(fromId, toId, arrow);
 }
 
+// Метод изменения веса связи
 void DiagramScene::editArrowWeight(Arrow* arrow) {
     if (!arrow) return;
 
@@ -111,6 +116,7 @@ void DiagramScene::editArrowWeight(Arrow* arrow) {
     }
 }
 
+// Метод обновления положения связей при перемещении узлов
 void DiagramScene::updateAllArrows() {
     for (Arrow* arrow : arrows) {
         arrow->updatePosition();
@@ -118,6 +124,7 @@ void DiagramScene::updateAllArrows() {
     update();
 }
 
+// Метод удаления выбранного элемента
 void DiagramScene::deleteSelectedItem() {
     QList<QGraphicsItem*> selected = selectedItems();
     if (selected.isEmpty()) return;
@@ -153,6 +160,7 @@ void DiagramScene::deleteSelectedItem() {
     update();
 }
 
+// Метод обработки нажатия на кнопку мыши
 void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     if (event->button() != Qt::LeftButton) {
         QGraphicsScene::mousePressEvent(event);
@@ -189,6 +197,7 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     }
 }
 
+// Метод обработки двойного нажатия на кнопку мыши
 void DiagramScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
     if (my_mode == EditItems) {
 
@@ -204,6 +213,7 @@ void DiagramScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
     QGraphicsScene::mouseDoubleClickEvent(event);
 }
 
+// Метод обработки перемещения мыши
 void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
     if (tempLine && tempStartNode) {
         tempLine->setLine(QLineF(tempStartNode->pos(), event->scenePos()));
@@ -214,6 +224,7 @@ void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
     QGraphicsScene::mouseMoveEvent(event);
 }
 
+// Метод обработки удержания кнопки мыши
 void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
     if (tempLine && tempStartNode) {
         QList<QGraphicsItem*> itemsAtPos = items(event->scenePos());
@@ -242,6 +253,7 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
     QGraphicsScene::mouseReleaseEvent(event);
 }
 
+// Метод очистки сцены
 void DiagramScene::clearAll() {
     for (Arrow* arrow : arrows) {
         removeItem(arrow);
@@ -264,8 +276,8 @@ void DiagramScene::clearAll() {
     nextNodeId = 1;
 }
 
+// Метод загрузки графа на сцену
 void DiagramScene::loadGraph(const vector<pair<int, pair<int, int>>>& nodesData, const vector<GraphArrow>& arrowsData) {
-    
     clearAll();
 
     map<int, QGraphicsEllipseItem*> nodeItems;
@@ -326,8 +338,8 @@ void DiagramScene::loadGraph(const vector<pair<int, pair<int, int>>>& nodesData,
     updateAllArrows();
 }
 
-void DiagramScene::drawWays(const QStringList& ways)
-{
+// Метод выделения связей на сцене
+void DiagramScene::drawWays(const QStringList& ways) {
     clearColors();
 
     for (const QString& way : ways) {
@@ -357,6 +369,7 @@ void DiagramScene::drawWays(const QStringList& ways)
     update();
 }
 
+// Метод сбрасывания выделений всех связей
 void DiagramScene::clearColors() {
     for (Arrow* arrow : arrows) {
         arrow->setGreat(false);

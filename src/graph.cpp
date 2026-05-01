@@ -6,6 +6,7 @@
 
 using namespace std;
 
+// Метод загрузки матрицы смежности из файла
 void Graph::loadMatrix(const string& filename) {
     ifstream file(filename);
     string line;
@@ -40,6 +41,7 @@ void Graph::loadMatrix(const string& filename) {
     findZone();
 }
 
+// Метод создания связей из матрицы смежности
 void Graph::convertToArrows() {
     arrows.clear();
     int size = adj_matrix.size();
@@ -71,6 +73,7 @@ void Graph::convertToArrows() {
     }
 }
 
+// Метод разбиения узлов на пояса
 void Graph::findZone() {
     int size = adj_matrix.size();
     if (size == 0) return;
@@ -141,7 +144,7 @@ void Graph::findZone() {
     }
 }
 
-
+// Метод получения списка узлов графа
 vector<pair<int, pair<int, int>>> Graph::getNodesData() const {
     vector<pair<int, pair<int, int>>> result;
     for (const auto& node : nodes) {
@@ -150,11 +153,12 @@ vector<pair<int, pair<int, int>>> Graph::getNodesData() const {
     return result;
 }
 
+// Метод получения списка связей графа
 vector<GraphArrow> Graph::getArrowsData() const {
     return arrows;
 }
 
-
+// Метод перестройки матрицы смежности
 void Graph::rebuildFromArrows(const vector<GraphArrow>& newArrows) {
     arrows = newArrows;
 
@@ -169,6 +173,7 @@ void Graph::rebuildFromArrows(const vector<GraphArrow>& newArrows) {
     }
 }
 
+// Метод проверки графа на двойные связи
 void Graph::dfsDAG(int v, vector<int>& visited, bool& hasCycle) const {
     visited[v] = 1;
     int n = adj_matrix.size();
@@ -187,6 +192,7 @@ void Graph::dfsDAG(int v, vector<int>& visited, bool& hasCycle) const {
     visited[v] = 2;
 }
 
+// Метод проверки на ацикличность
 bool Graph::isDAG() const {
     int n = adj_matrix.size();
     if (n == 0) return true;
@@ -203,6 +209,7 @@ bool Graph::isDAG() const {
     return true;
 }
 
+// Метод обхода графа для поиска циклов
 void Graph::dfsCycle(int v, vector<int>& visited, vector<int>& parent, vector<pair<int, int>>& cycleArrows) const {
     visited[v] = 1;  // в стеке
     int n = adj_matrix.size();
@@ -229,6 +236,7 @@ void Graph::dfsCycle(int v, vector<int>& visited, vector<int>& parent, vector<pa
     visited[v] = 2;  // обработан
 }
 
+// Метод нахождения всех связей, образующих цикл
 vector<pair<int, int>> Graph::findCycleArrows() const {
     int n = adj_matrix.size();
     if (n == 0) return {};
