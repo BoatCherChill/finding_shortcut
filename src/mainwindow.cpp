@@ -299,7 +299,7 @@ void MainWindow::executeGraph(){
     belts = getBelt(arrows);*/
     //printSolution(this);
     if (ways.size() == 0) {
-        QString message = QString("Пути из пункта '%1' в пункт '%2' гнилая дорожка!\n\n")
+        QString message = QString("Пути из пункта '%1' в пункт '%2' не существует!\n\n")
             .arg(startNode)
             .arg(endNode);
 
