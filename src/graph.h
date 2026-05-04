@@ -23,8 +23,7 @@ using namespace std;
 // Структура одного узла графа
 struct GraphNode {
     int nodeID; // Порядковый номер узла
-    //Список узлов, из которых можно попасть в данный узел
-    QVector<int> prev_nodesID;
+    QVector<int> prev_nodesID; //Список узлов, из которых можно попасть в данный узел
     int K; // Уровень узла (пояс)
     pair<int, int> coordinates; // Координаты узла на сцене
     bool inCycle; // Флаг принадлежности к циклу
@@ -46,29 +45,21 @@ private:
     vector<GraphArrow> arrows; // Список связей графа
     map <int, vector<int>> zones; // Список всех узлов, разбитых по поясам
 
-    // Метод обхода графа для поиска циклов
+    // Метод рекурсивного обхода графа для поиска циклов (текущий узел, массив статусов узлов на посещение, массив родителя для восстановления пути, вектор найденных связей)
     void dfsCycle(int v, vector<int>& visited, vector<int>& parent, vector<pair<int, int>>& cycleArrows) const;
-    // Метод проверки графа на двойные связи
+    // Метод проверки графа на ацикличность (текущий узел, массив статусов узлов на посещение, флаг наличия цикла при обходе)
     void dfsDAG(int v, vector<int>& visited, bool& hasCycle) const;
 
 public:
-    // Метод загрузки матрицы смежности из файла
-    void loadMatrix(const string& filename);
-    // Метод создания связей из матрицы смежности
-    void convertToArrows();
-    // Метод разбиения узлов на пояса
-    void findZone();
+    void loadMatrix(const string& filename); // Метод загрузки матрицы смежности из файла (название файла)
+    void convertToArrows(); // Метод создания связей из матрицы смежности
+    void findZone(); // Метод разбиения узлов на пояса
 
-    // Метод получения списка узлов графа
-    vector<pair<int, pair<int, int>>> getNodesData() const;
-    // Метод получения списка связей графа
-    vector<GraphArrow> getArrowsData() const;
-    // Метод перестройки матрицы смежности
-    void rebuildFromArrows(const vector<GraphArrow>& newArrows);
+    vector<pair<int, pair<int, int>>> getNodesData() const;  // Метод получения списка узлов графа
+    vector<GraphArrow> getArrowsData() const { return arrows; } // Метод получения списка связей графа
+    void rebuildFromArrows(const vector<GraphArrow>& newArrows); // Метод перестройки матрицы смежности (список стрелок)
 
-    // Метод проверки на ацикличность
-    bool isDAG() const;
-    // Метод нахождения всех связей, образующих цикл
-    vector<pair<int, int>> findCycleArrows() const;
+    bool isDAG() const; // Метод проверки на ацикличность
+    vector<pair<int, int>> findCycleArrows() const; // Метод нахождения всех связей, образующих цикл
 };
 

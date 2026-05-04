@@ -26,55 +26,35 @@ public:
     // Режимы работы программы
     enum Mode { InsertNode, InsertArrow, EditItems };
 
-    // Конструктор класса
-    DiagramScene(QMenu* itemMenu, QObject* parent = nullptr);
+    DiagramScene(QMenu* itemMenu, QObject* parent = nullptr); // Конструктор класса (указатель на контекстное меню, родительский объект)
 
-    // Метод установки текущего режима работы
-    void setMode(Mode mode);
-    // Метод получения текущего режима работы
-    Mode getMode() const { return my_mode; }
+    void setMode(Mode mode); // Метод установки текущего режима работы (режим)
+    Mode getMode() const { return my_mode; } // Метод получения текущего режима работы
 
-    // Метод удаления выбранного элемента
-    void deleteSelectedItem();
-    // Метод очистки сцены
-    void clearAll();
+    void deleteSelectedItem(); // Метод удаления выбранного элемента
+    void clearAll(); // Метод очистки сцены
 
-    // Метод выделения связей на сцене
-    void drawWays(const QStringList& ways);
-    // Метод загрузки графа на сцену
-    void loadGraph(const vector<pair<int, pair<int, int>>>& nodesData, const vector<GraphArrow>& arrowsData);
-    // Метод получения всех связей графа на сцене
-    QVector<Arrow*> getArrows() const { return arrows; }
+    void drawWays(const QStringList& ways); // Метод выделения связей на сцене (список путей в виде строк)
+    void loadGraph(const vector<pair<int, pair<int, int>>>& nodesData, const vector<GraphArrow>& arrowsData); // Метод загрузки графа на сцену (список узлов, список связей)
+    QVector<Arrow*> getArrows() const { return arrows; } // Метод получения всех связей графа на сцене
 
 signals:
-    // Метод, сообщающий о добавлении нового элемента на сцену
-    void itemInserted();
-    // Метод, вызываемый при выборе элемента на сцене
-    void itemSelected(QGraphicsItem* item);
-    // Метод, реагирующий на изменение структуры графа
-    void graphChanged(int from, int to, Arrow* arrow);
+    void itemInserted(); // Сигнал о добавлении нового элемента на сцену
+    void itemSelected(QGraphicsItem* item); // Сигнал выбора элемента на сцене (указатель на выбранный элемент)
+    void graphChanged(int from, int to, Arrow* arrow); // Сигнал изменения структуры графа (ID начального узла, ID конечного узла, указатель на стрелку)
 
 protected:
-    // Метод обработки нажатия на кнопку мыши
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-    // Метод обработки перемещения мыши
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-    // Метод обработки удержания кнопки мыши
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-    // Метод обработки двойного нажатия на кнопку мыши
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override; // Метод обработки нажатия кнопки мыши (событие мыши)
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override; // Метод обработки перемещения мыши (событие мыши)
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override; // Метод обработки отпускания кнопки мыши (событие мыши)
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override; // Метод обработки двойного нажатия кнопки мыши (событие мыши)
 
 private:
-    // Метод создания нового узла
-    void createNode(const QPointF& pos);
-    // Метод создания новой связи
-    void createArrow(QGraphicsEllipseItem* startNode, QGraphicsEllipseItem* endNode);
-    // Метод обновления положения связей при перемещении узлов
-    void updateAllArrows();
-    // Метод изменения веса связи
-    void editArrowWeight(Arrow* arrow);
-    // Метод сбрасывания выделений всех связей
-    void clearColors();
+    void createNode(const QPointF& pos); // Метод создания нового узла (координаты позиции)
+    void createArrow(QGraphicsEllipseItem* startNode, QGraphicsEllipseItem* endNode); // Метод создания новой связи (начальный узел, конечный узел)
+    void updateAllArrows(); // Метод обновления положения связей при перемещении узлов
+    void editArrowWeight(Arrow* arrow); // Метод изменения веса связи (указатель на стрелку)
+    void clearColors(); // Метод сброса выделения всех связей
     
     Mode my_mode; // Текущий режим работы
     QMenu* my_menu; // Указатель на контекстное меню

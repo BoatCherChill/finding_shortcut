@@ -38,7 +38,7 @@ void MainWindow::setupUI() {
     setCentralWidget(view);
 }
 
-// Метод создания панели иснтрументов
+// Метод создания панели инструментов
 void MainWindow::createToolBar() {
     QToolBar* bar = addToolBar("Инструменты");
     bar->setMovable(false);
@@ -138,7 +138,7 @@ void MainWindow::setEditMode() {
     scene->clearSelection();
 }
 
-// Метод управления перемещением узлов
+// Метод управления перемещением узлов (флаг разрешения на перемещение узлов)
 void MainWindow::updateNodesMovable(bool movable) {
     for (QGraphicsItem* item : scene->items()) {
         if (QGraphicsEllipseItem* node = qgraphicsitem_cast<QGraphicsEllipseItem*>(item)) {
@@ -294,10 +294,6 @@ void MainWindow::executeGraph(){
         solution.push_back(step);
         
     }
-    /*vector<vector<int>> belts;
-
-    belts = getBelt(arrows);*/
-    //printSolution(this);
     if (ways.size() == 0) {
         QString message = QString("Пути из пункта '%1' в пункт '%2' не существует!\n\n")
             .arg(startNode)
@@ -307,7 +303,7 @@ void MainWindow::executeGraph(){
     }
 }
 
-// Метод формирования матрицы расстояний между узлами
+// Метод формирования матрицы расстояний между узлами (список стрелок графа)
 vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>& arrows) {
     if (arrows.empty()) {
         return {};
@@ -321,9 +317,6 @@ vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>&
     vector<vector<float>> matrix(maxNode + 1, vector<float>(maxNode + 1, 0.0f));
 
     for (const auto& arrow : arrows) {
-        /*if (arrow.isLoop) {
-            continue;
-        }*/
 
         float weightValue = 0.0f;
         try {
@@ -339,14 +332,7 @@ vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>&
     return matrix;
 }
 
-//vector<vector<int>> MainWindow::getBelt(vector<GraphArrow> arrows) {
-//    int count = 1;
-//    int countNextLoop = 0;
-//
-//    for (int count = 0; )
-//}
-
-// Метод прямого хода алгоритма поиска
+// Метод прямого хода алгоритма поиска (Список шагов решения, номер текущего шага, текущий путь, словарь найденных путей, текущий узел, минимальное расстояние)
 void MainWindow::findSolution(vector<SolutionPart> solution, int step, vector<int>& currentPath, map<float, vector<string>>& result, int currentValue, float minDist) {
 
     currentPath.push_back(currentValue);
@@ -518,7 +504,6 @@ void MainWindow::printSolution() {
             out << qSetFieldWidth(0) << Qt::endl;
             out << qSetFieldWidth(1) << "|";
             if (j == -1) {
-                //cout << "  ";
                 out << qSetFieldWidth(FIELD_WIDTH) << " ";
                 for (int k = 0; k < i.dist[0].size(); k++) {
                     if (k == 0) out << qSetFieldWidth(1) << "|";
@@ -594,7 +579,7 @@ void MainWindow::syncGraphFromScene() {
     ways.clear();
 }
 
-// Метод обработки изменений графа
+// Метод обработки изменений графа (ID начального узла, ID конечного узла, указатель на стрелку)
 void MainWindow::onGraphChanged(int from, int to, Arrow* arrow) {
     syncGraphFromScene();
 
