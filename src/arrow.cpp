@@ -13,7 +13,7 @@ Arrow::Arrow(QGraphicsEllipseItem* start, QGraphicsEllipseItem* end) : current_s
 QRectF Arrow::boundingRect() const {
     qreal extra = (pen().width() + 20) / 2.0; // Дополнительный запас для наконечника
     return QRectF(line().p1(), QSizeF(line().p2().x() - line().p1().x(), line().p2().y() - line().p1().y()))
-        .normalized() // Модуль
+        .normalized() // Привести к положительным координатам
         .adjusted(-extra, -extra, extra, extra);
 }
 
@@ -39,6 +39,7 @@ void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) 
     double delta_y = end_position.y() - start_position.y();
     double length = sqrt(delta_x * delta_x + delta_y * delta_y);
 
+    // Если узлы совпадают
     if (length < 0.1)
         return;
 
@@ -48,7 +49,7 @@ void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) 
     double perpX = -dirY;
     double perpY = dirX;
 
-    double offset = 35; // Отступ от центра узла
+    double offset = 35; // Отступ от центра узла (по радиусу узла)
 
     // Нарисовать точки начала и конца линии с отступами от центров
     QPointF start_point(start_position.x() + dirX * offset, start_position.y() + dirY * offset);
@@ -58,7 +59,7 @@ void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) 
 
     // Нарисовать наконечник
     if (!isDouble) {
-        qreal arrow_size = 15;
+        qreal arrow_size = 15; // Размер наконечника
         QPointF arrow_left = end_point - QPointF(dirX * arrow_size - perpX * arrow_size / 2, dirY * arrow_size - perpY * arrow_size / 2);
         QPointF arrow_right = end_point - QPointF(dirX * arrow_size + perpX * arrow_size / 2, dirY * arrow_size + perpY * arrow_size / 2);
 
@@ -67,17 +68,19 @@ void Arrow::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) 
         painter->drawPolygon(arrow_head);
     }
 
-    double textOffset = 15;
+    // Нарисовать вес стрелки
+    double textOffset = 15; // Отступ текста от стрелки
     QPointF virtualStart = start_point - QPointF(perpX * textOffset, perpY * textOffset);
     QPointF virtualEnd = end_point - QPointF(perpX * textOffset, perpY * textOffset);
-
    
     QPointF mid_point = (virtualStart + virtualEnd) / 2;
 
-    
     painter->setPen(QPen(Qt::blue, 2));
     painter->setFont(QFont("Arial", 10, QFont::Bold));
-    painter->drawText(mid_point, fullWeight.isEmpty() ? QString::number(weight) : fullWeight);
+    if (fullWeight.isEmpty())
+        painter->drawText(mid_point, QString::number(weight));
+    else
+        painter->drawText(mid_point, fullWeight);
 
     // Если стрелка выделена, рисуем пунктирные линии выделения
     if (isSelected()) {
