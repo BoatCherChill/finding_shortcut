@@ -191,45 +191,61 @@ void MainWindow::loadGraph() {
 
 }
 
+
+// Метод запуска процесса нахождения кратчайшего пути
 void MainWindow::executeGraph(){ 
 
-
+    // Получить данные о узлах и связях
     vector<GraphArrow> arrows;
     arrows = graph.getArrowsData();
     ways.clear();
     solution.clear();
 
+    // Получить матрицу длин связей
     vector<vector<float>> weights = createDistanceMatrix(arrows);
     
     int countLoop = 0;
+
     while (true) {
+        // Проверить наличие решения
         if (solution.size() != 0) {
             vector<int> nodes = solution[solution.size() - 1].node;
             bool flagOfExit = false;
+            // Если дошли до искомого узла - найти решение
             if (std::find(nodes.begin(), nodes.end(), startNode) != nodes.end()) {
+                // Найти позицию начального узла в списке
                 int position = std::distance(nodes.begin(),
                     std::find(nodes.begin(), nodes.end(), startNode));
                 vector<int> path;
-                float a = solution[solution.size() - 1].min_size[position];
+                // Найти решение
                 findSolution(solution, solution.size() - 1, path, ways, startNode, solution[solution.size()-1].min_size[position]);
                 
             }
+            // Закончить поиск, если из последнего узла нет путей
             if (nodes.size() == 0) break;
         }
+
+        // Начать следующий шаг решения
         SolutionPart step;
         if (countLoop == 0)
         {
             countLoop++;
+            // Создать массив узлов, в которые нужно найти путь (шапка таблицы)
             vector<float> node;
             node.push_back(endNode);
             step.dist.push_back(node);
+            // Найти все узлы, из которых есть пути в интересующие узлы
             for (int i = 0; i < weights.size(); i++) {
                 if (weights[i][endNode - 1] != 0) {
+                    // Добавить узел, откуда есть путь
                     step.node.push_back(i + 1);
+                    // Добавить дистанцию
                     vector<float> d;
                     d.push_back(weights[i][endNode - 1]);
                     step.dist.push_back(d);
+                    // Найти минимальный путь
                     step.min_size.push_back(weights[i][endNode - 1]);
+                    // Выбрать лучший конечный путь
                     vector<int> best;
                     best.push_back(endNode);
                     step.best_var.push_back(best);
@@ -240,12 +256,15 @@ void MainWindow::executeGraph(){
             int count = 0;
             vector<float> temp;
             step.dist.push_back(temp);
+            // Найти узлы, откуда есть путь в узлы, найденные на предыдущем шаге
             for (int i = 0; i < solution[solution.size() - 1].node.size(); i++) {
                 step.dist[0].push_back(solution[solution.size() - 1].node[i]);
                 int t = weights.size();
                 for (int j = 0; j < t; j++) {
                     if (weights[j][solution[solution.size() - 1].node[i] - 1] != 0) {
+                        // Найти дистанцию между найденным узлом на этом и предыдущем шаге
                         float weight = weights[j][solution[solution.size() - 1].node[i] - 1];
+                        // Если узла еще нет в найденных (первый столбец)
                         if (std::find(step.node.begin(), step.node.end(), j + 1) == step.node.end()) {
                             step.node.push_back(j + 1);
                             vector<float> newWeights;
@@ -255,6 +274,7 @@ void MainWindow::executeGraph(){
                             if (count < newWeights.size()) count = newWeights.size();
                         }
                         else {
+                            // Найти нужный узел в списке и добавить информацию по нему
                             int position = std::distance(step.node.begin(),
                                 std::find(step.node.begin(), step.node.end(), j + 1)) + 1;
                             for (int k = step.dist[position].size(); k < count; k++) step.dist[position].push_back(1000000);
@@ -263,12 +283,14 @@ void MainWindow::executeGraph(){
                         }
                     }
                 }
+                // Дополнить пустые места в таблице
                 for (int j = 0; j < step.node.size(); j++) {
                     if (step.dist[j + 1].size() < count) 
                         for (int k = step.dist[j + 1].size(); k < count; k++) 
                             step.dist[j + 1].push_back(1000000);
                 }
             }
+            // Найти минимальный путь в каждой строке и выбрать наилучший вариант для каждого пункта
             for (int j = 0; j < step.node.size(); j++) {
                 auto it = std::min_element(step.dist[j+1].begin(), step.dist[j + 1].end());
                 float minValue = *it;
@@ -283,13 +305,9 @@ void MainWindow::executeGraph(){
             }
 
         }
+        // Добавить шаг в решение
         solution.push_back(step);
-        
     }
-    /*vector<vector<int>> belts;
-
-    belts = getBelt(arrows);*/
-    //printSolution(this);
     if (ways.size() == 0) {
         QString message = QString("Пути из пункта '%1' в пункт '%2' гнилая дорожка!\n\n")
             .arg(startNode)
