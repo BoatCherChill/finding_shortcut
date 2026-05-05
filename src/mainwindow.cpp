@@ -201,7 +201,7 @@ void MainWindow::loadGraph() {
 }
 
 
-// Метод запуска процесса нахождения кратчайшего пути
+// Метод запуска процесса нахождения кратчайшего пути (обратный ход)
 void MainWindow::executeGraph(){ 
 
     // Получить данные о узлах и связях
@@ -339,8 +339,8 @@ vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>&
 
     vector<vector<float>> matrix(maxNode + 1, vector<float>(maxNode + 1, 0.0f));
 
+    // Найти длину каждой стрелки и связать с узлами с матрице
     for (const auto& arrow : arrows) {
-
         float weightValue = 0.0f;
         try {
             weightValue = stof(arrow.weight);
@@ -348,7 +348,6 @@ vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>&
         catch (const exception& e) {
             continue;
         }
-
         matrix[arrow.node_1][arrow.node_2] = weightValue;
     }
 
@@ -361,8 +360,8 @@ void MainWindow::findSolution(vector<SolutionPart> solution, int step, vector<in
     currentPath.push_back(currentValue);
 
     if (step == 0) {
-
         auto it = std::find(solution[step].node.begin(), solution[step].node.end(), currentValue);
+        // Найти путь в конечный пункт
         if (it != solution[step].node.end()) {
             int position = std::distance(solution[step].node.begin(), it);
 
@@ -370,6 +369,7 @@ void MainWindow::findSolution(vector<SolutionPart> solution, int step, vector<in
                 int previousValue = solution[step].best_var[position][0];
                 
                 string pathStr = "";
+                // Создать конечный маршрут
                 for (int i = 0; i < currentPath.size(); i++) {
                     if (i == 0) pathStr += to_string(currentPath[i]);
                     else pathStr += "-" + to_string(currentPath[i]);
@@ -382,6 +382,7 @@ void MainWindow::findSolution(vector<SolutionPart> solution, int step, vector<in
         return;
     }
 
+    // Если путь в следующий узел не найден, удалить вариант маршрута
     auto it = std::find(solution[step].node.begin(), solution[step].node.end(), currentValue);
     if (it == solution[step].node.end()) {
         currentPath.pop_back();
@@ -392,6 +393,7 @@ void MainWindow::findSolution(vector<SolutionPart> solution, int step, vector<in
 
     vector<int> nextValues = solution[step].best_var[position];
 
+    // Для каждого из лучших вариантов построить маршрут
     for (int nextValue : nextValues) {
         findSolution(solution, step - 1, currentPath, result, nextValue, minDist);
     }
@@ -476,22 +478,22 @@ void MainWindow::printSolution() {
 
     QString filePath = QFileDialog::getSaveFileName(
         this,
-        "Сохранить файл с результатами",          // Заголовок окна
-        QDir::homePath(),                    // Начальная директория (домашняя папка)
-        "Текстовые файлы (*.txt);" // Фильтры типов файлов
+        "Сохранить файл с результатами",         
+        QDir::homePath(),                
+        "Текстовые файлы (*.txt);"
     );
 
-    // Проверяем, не нажал ли пользователь "Отмена"
+    // Проверить, не нажал ли пользователь "Отмена"
     if (filePath.isEmpty()) {
         return;
     }
 
-    // Добавляем расширение .txt, если его нет
+    // Добавить расширение .txt, если его нет
     if (!filePath.endsWith(".txt", Qt::CaseInsensitive)) {
         filePath += ".txt";
     }
 
-    // Создаём файл и записываем в него строку
+    // Создать файл
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QMessageBox::warning(this, "Ошибка",
@@ -508,8 +510,10 @@ void MainWindow::printSolution() {
     out.setRealNumberPrecision(PRECISION);
 
     int count = 0;
+    // Вывести в файл шаги решения в виде таблицы
     for (SolutionPart i : solution) {
         count++;
+        // Вывести шапку таблицы
         if (count == solution.size()) break;
         for (int k = 0; k < (FIELD_WIDTH * (i.dist[0].size() + 3) + (i.dist[0].size() + 4)); k++) out << "-";
         out << qSetFieldWidth(0) << Qt::endl;
@@ -522,10 +526,12 @@ void MainWindow::printSolution() {
 
 
         int sizenode = i.node.size();
+        // Вывести информацию о шаге решения
         for (int j = -1; j < sizenode; j++) {
             for (int k = 0; k < (FIELD_WIDTH * (i.dist[0].size() + 3) + (i.dist[0].size() + 4)); k++) out << "-";
             out << qSetFieldWidth(0) << Qt::endl;
             out << qSetFieldWidth(1) << "|";
+            // Вывести пункты, в которые искался маршрут
             if (j == -1) {
                 out << qSetFieldWidth(FIELD_WIDTH) << " ";
                 for (int k = 0; k < i.dist[0].size(); k++) {
@@ -536,15 +542,19 @@ void MainWindow::printSolution() {
                 for (int k = 0; k < 2; k++) out << qSetFieldWidth(FIELD_WIDTH + 1) << "|";
             }
             else {
+                // Вывести узел, из которого найден путь
                 out << qSetFieldWidth(FIELD_WIDTH) << i.node[j];
                 out << qSetFieldWidth(1) << "|";
+                // Вывести длину пути в пункт
                 for (int k = 0; k < i.dist[j].size(); k++) {
                     if (i.dist[j + 1][k] != 1000000) out << qSetFieldWidth(FIELD_WIDTH) << i.dist[j + 1][k];
                     else out << qSetFieldWidth(FIELD_WIDTH) << "None";
                     out << qSetFieldWidth(1) << "|";
                 }
+                // Вывести минимальную длину пути
                 out << qSetFieldWidth(FIELD_WIDTH) << i.min_size[j];
                 out << qSetFieldWidth(1) << "|";
+                // Вывести список узлов с оптимальной длиной маршрута
                 QString best;
                 for (int k = 0; k < i.best_var[j].size(); k++) {
                     if (k != 0) best += ",";
@@ -559,6 +569,7 @@ void MainWindow::printSolution() {
         out << qSetFieldWidth(0) << Qt::endl << Qt::endl;
     }
 
+    // Вывести оптимальные пути
     if (ways.size() != 0) {
         auto& minElement = *ways.begin();
         int minKey = minElement.first;
@@ -573,10 +584,12 @@ void MainWindow::printSolution() {
         }
     }
     else {
+        // Проинформировать пользователя об отсутствии найденных путей
         out << "No ways found (" << QString::fromStdString(to_string(startNode))  << " -> " << QString::fromStdString(to_string(endNode))  << ")" << Qt::endl;
     }
     file.close();
 
+    // Проинформировать толькователя о директории сохранения файла с результатами
     QString message = QString("Файл сохранен в директорию:\n'%1'")
         .arg(filePath);
 
