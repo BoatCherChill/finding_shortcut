@@ -8,6 +8,7 @@
 #include <QMessageBox>
 #include <QGraphicsEllipseItem>
 
+// Конструктор класса
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
 {
@@ -17,9 +18,11 @@ MainWindow::MainWindow(QWidget* parent)
     resize(1000, 700);
 }
 
+// Деструктор класса
 MainWindow::~MainWindow() {
 }
 
+// Метод создания графической сцены
 void MainWindow::setupUI() {
     QMenu* itemMenu = new QMenu(this);
     scene = new DiagramScene(itemMenu, this);
@@ -35,6 +38,7 @@ void MainWindow::setupUI() {
     setCentralWidget(view);
 }
 
+// Метод создания панели инструментов
 void MainWindow::createToolBar() {
     QToolBar* bar = addToolBar("Инструменты");
     bar->setMovable(false);
@@ -110,6 +114,7 @@ void MainWindow::createToolBar() {
     bar->addSeparator();
 }
 
+// Метод установки режима добавления узлов
 void MainWindow::setNodeMode() {
     scene->setMode(DiagramScene::InsertNode);
     view->setCursor(Qt::ArrowCursor);
@@ -117,6 +122,7 @@ void MainWindow::setNodeMode() {
     scene->clearSelection();
 }
 
+// Метод установки режима создания связей
 void MainWindow::setArrowMode() {
     scene->setMode(DiagramScene::InsertArrow);
     view->setCursor(Qt::CrossCursor);
@@ -124,6 +130,7 @@ void MainWindow::setArrowMode() {
     scene->clearSelection();
 }
 
+// Метод установки режима редактирования
 void MainWindow::setEditMode() {
     scene->setMode(DiagramScene::EditItems);
     view->setCursor(Qt::ArrowCursor);
@@ -131,7 +138,7 @@ void MainWindow::setEditMode() {
     scene->clearSelection();
 }
 
-
+// Метод управления перемещением узлов (флаг разрешения на перемещение узлов)
 void MainWindow::updateNodesMovable(bool movable) {
     for (QGraphicsItem* item : scene->items()) {
         if (QGraphicsEllipseItem* node = qgraphicsitem_cast<QGraphicsEllipseItem*>(item)) {
@@ -140,11 +147,13 @@ void MainWindow::updateNodesMovable(bool movable) {
     }
 }
 
+// Метод удаления выбранного элемента
 void MainWindow::deleteItem() {
     if (!scene) return;
     scene->deleteSelectedItem();
 }
 
+// Метод загрузки графа из файла
 void MainWindow::loadGraph() {
     QString fileName = QFileDialog::getOpenFileName(this, "Открыть файл", "", "Text files (*.txt)");
     if (fileName.isEmpty()) return;
@@ -309,7 +318,7 @@ void MainWindow::executeGraph(){
         solution.push_back(step);
     }
     if (ways.size() == 0) {
-        QString message = QString("Пути из пункта '%1' в пункт '%2' гнилая дорожка!\n\n")
+        QString message = QString("Пути из пункта '%1' в пункт '%2' не существует!\n\n")
             .arg(startNode)
             .arg(endNode);
 
@@ -317,6 +326,7 @@ void MainWindow::executeGraph(){
     }
 }
 
+// Метод формирования матрицы расстояний между узлами (список стрелок графа)
 vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>& arrows) {
     if (arrows.empty()) {
         return {};
@@ -330,9 +340,6 @@ vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>&
     vector<vector<float>> matrix(maxNode + 1, vector<float>(maxNode + 1, 0.0f));
 
     for (const auto& arrow : arrows) {
-        /*if (arrow.isLoop) {
-            continue;
-        }*/
 
         float weightValue = 0.0f;
         try {
@@ -348,13 +355,7 @@ vector<vector<float>> MainWindow::createDistanceMatrix(const vector<GraphArrow>&
     return matrix;
 }
 
-//vector<vector<int>> MainWindow::getBelt(vector<GraphArrow> arrows) {
-//    int count = 1;
-//    int countNextLoop = 0;
-//
-//    for (int count = 0; )
-//}
-
+// Метод прямого хода алгоритма поиска (Список шагов решения, номер текущего шага, текущий путь, словарь найденных путей, текущий узел, минимальное расстояние)
 void MainWindow::findSolution(vector<SolutionPart> solution, int step, vector<int>& currentPath, map<float, vector<string>>& result, int currentValue, float minDist) {
 
     currentPath.push_back(currentValue);
@@ -397,6 +398,7 @@ void MainWindow::findSolution(vector<SolutionPart> solution, int step, vector<in
     currentPath.pop_back();
 }
 
+// Метод начала работы выполнения алгоритма поиска оптимального пути
 void MainWindow::startExecute() {
 
     QDialog dialog(this);
@@ -462,6 +464,7 @@ void MainWindow::startExecute() {
     updateSaveButton();
 }
 
+// Метод сохранения результатов работы алгоритма
 void MainWindow::printSolution() {
     if (solution.size() == 0) {
         QString message = QString("Необходимо сначала выполнить расчет кратчайшего пути для графа.");
@@ -524,7 +527,6 @@ void MainWindow::printSolution() {
             out << qSetFieldWidth(0) << Qt::endl;
             out << qSetFieldWidth(1) << "|";
             if (j == -1) {
-                //cout << "  ";
                 out << qSetFieldWidth(FIELD_WIDTH) << " ";
                 for (int k = 0; k < i.dist[0].size(); k++) {
                     if (k == 0) out << qSetFieldWidth(1) << "|";
@@ -582,6 +584,7 @@ void MainWindow::printSolution() {
 
 }
 
+// Метод обновления внутренней модели графа
 void MainWindow::syncGraphFromScene() {
     vector<GraphArrow> currentArrows;
     for (Arrow* a : scene->getArrows()) {
@@ -599,6 +602,7 @@ void MainWindow::syncGraphFromScene() {
     ways.clear();
 }
 
+// Метод обработки изменений графа (ID начального узла, ID конечного узла, указатель на стрелку)
 void MainWindow::onGraphChanged(int from, int to, Arrow* arrow) {
     syncGraphFromScene();
 
@@ -645,6 +649,7 @@ void MainWindow::onGraphChanged(int from, int to, Arrow* arrow) {
     updateSaveButton();
 }
 
+// Метод проверки корректности узлов
 bool MainWindow::checkNodes()
 {
     if (startNode == endNode) {
@@ -673,6 +678,7 @@ bool MainWindow::checkNodes()
     return true;
 }
 
+// Метод управления доступом к кнопке "Выполнить"
 void MainWindow::updateExecuteButton() {
     QPushButton* execBtn = findChild<QPushButton*>("executeButton");
     if (execBtn) {
@@ -680,6 +686,7 @@ void MainWindow::updateExecuteButton() {
     }
 }
 
+// Метод управления доступом к кнопке "Сохранить решение"
 void MainWindow::updateSaveButton() {
     QPushButton* saveBtn = findChild<QPushButton*>("saveButton");
     if (saveBtn) {
@@ -687,9 +694,9 @@ void MainWindow::updateSaveButton() {
     }
 }
 
+// Метод проверки наличия двойных связей
 void MainWindow::checkDoubleArrows() {
     hasDouble = false;
-
     for (Arrow* a : scene->getArrows()) {
         if (a->getDouble()) {  
             hasDouble = true;
